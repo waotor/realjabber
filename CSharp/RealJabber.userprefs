@@ -1,0 +1,18 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="RealJabber/FrmMain.cs">
+    <Files>
+      <File FileName="RealJabber/FrmMain.cs" Line="171" Column="14" />
+      <File FileName="RealJabber/FrmChat.cs" Line="1" Column="1" />
+      <File FileName="RealJabber/ChatSession.cs" Line="1" Column="1" />
+      <File FileName="RealJabber/RealTimeText.cs" Line="482" Column="29" />
+      <File FileName="RealJabber/Program.cs" Line="1" Column="1" />
+      <File FileName="RealJabber/FrmChat.Designer.cs" Line="1" Column="1" />
+      <File FileName="RealJabber/FrmMain.Designer.cs" Line="415" Column="17" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
