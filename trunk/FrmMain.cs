@@ -51,7 +51,7 @@ namespace RealJabber
     {
         // Recommended, see http://code.google.com/p/jabber-net/wiki/FAQ_GoogleTalk
         // May need to use "jabberClient1.NetworkHost = talk.l.google.com"; // If using Mono on Linux/Mac etc.
-        const string DEFAULT_SERVER = "gmail.com";
+        const string DEFAULT_SERVER = "talk.l.google.com";
         string login;
         static ManualResetEvent done = new ManualResetEvent(false);
         
@@ -78,15 +78,16 @@ namespace RealJabber
         private void Form1_Load(object sender, EventArgs e)
         {
             txtUserName.Text = "";
-            txtServer.Text = DEFAULT_SERVER;
+            cbServer.Text = DEFAULT_SERVER;
             richTextBox1.SelectAll();
             richTextBox1.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBox1.SelectionLength = 0;
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyName assemblyName = assembly.GetName();
             lblLine4.Text = "Version " + assemblyName.Version.ToString();
 #if DEBUG
-            txtUserName.Text = "mr.devtest";
+            txtUserName.Text = "mr.devtest@gmail.com";
             txtPassword.Text = "";
             //btnSignin_Click(this, EventArgs.Empty);
 #endif
@@ -98,12 +99,26 @@ namespace RealJabber
         {
             panelCredentials.Enabled = false;
 
-            login = txtUserName.Text;
-            jabberClient.User = login;
-            //jabberClient.NetworkHost = "talk.l.google.com"; // If using Mono on Linux/Mac etc.
-            jabberClient.Server = txtServer.Text; 
+            JID jid = new JID(txtUserName.Text);
+            if (String.IsNullOrEmpty(jid.User))
+            {
+                jabberClient.User = txtUserName.Text;
+                jabberClient.Server = "gmail.com";
+            }
+            else
+            {
+                jabberClient.User = jid.User;
+                jabberClient.Server = jid.Server;
+            }
+            jabberClient.NetworkHost = cbServer.Text;
             jabberClient.Password = txtPassword.Text;
             jabberClient.AutoRoster = true;
+            jabberClient.AutoStartTLS = true;
+            jabberClient.AutoPresence = true;
+            jabberClient.AutoLogin = true;
+            jabberClient.Resource = "realjabber";
+            //jabberClient.PlaintextAuth = true;
+            jabberClient.OnAuthenticate += new bedrock.ObjectHandler(jabberClient_OnAuthenticate);
 
             rosterMgr = new RosterManager();
             rosterMgr.Stream = jabberClient;
@@ -120,9 +135,8 @@ namespace RealJabber
             rosterTree.PresenceManager = presenceMgr;
             rosterTree.DoubleClick += new EventHandler(rosterTree_DoubleClick);
 
-            jabberClient.Connect();
-            jabberClient.OnAuthenticate += new bedrock.ObjectHandler(jabberClient_OnAuthenticate);
             lblUser.Text = jabberClient.User;
+            jabberClient.Connect();
         }
 
         /// <summary>Hitting Enter after entering password, triggers the signin button</summary>
@@ -132,7 +146,7 @@ namespace RealJabber
         }
 
         /// <summary>Hitting Enter after entering server, triggers the signin button</summary>
-        private void txtServer_KeyDown(object sender, KeyEventArgs e)
+        private void cbServer_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter) btnSignin.PerformClick();
         }

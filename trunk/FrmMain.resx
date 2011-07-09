@@ -120,71 +120,18 @@
   <metadata name="jabberClient.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="pictureBoxGoogle.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        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
-        scaMitk9AjgAAAAASUVORK5CYII=
-</value>
-  </data>
-  <data name="textBoxShamelessPlug.Text" xml:space="preserve">
-    <value>Yes, you!  I have an idea for your "20% time" project.  Modify the GMAIL Google Talk client to support Real Time Text!  Or why don't you ask a deaf Google employee?  Such as Ken Harrenstien, who invented the YouTube Automatic Captioning feature?  Let him or others know.  Do it!  :-)</value>
+  <data name="richTextBox1.Text" xml:space="preserve">
+    <value>Implementation of
+XMPP Extension Protocol:
+
+XEP-0301 In-Band Real Time Text
+www.xmpp.org/extensions/xep-0301.html
+
+Specification authored by Mark D. Rejhon.
+www.realjabber.org
+
+Mark Rejhon
+consulting@rejtech.com
+www.rejtech.com</value>
   </data>
 </root>
