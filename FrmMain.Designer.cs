@@ -34,11 +34,8 @@ namespace RealJabber
             this.panelCredentials = new System.Windows.Forms.Panel();
             this.lblLine4 = new System.Windows.Forms.Label();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
-            this.groupBoxShamelessPlug = new System.Windows.Forms.GroupBox();
-            this.pictureBoxGoogle = new System.Windows.Forms.PictureBox();
-            this.textBoxShamelessPlug = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.txtServer = new System.Windows.Forms.TextBox();
+            this.cbServer = new System.Windows.Forms.ComboBox();
             this.lblServer = new System.Windows.Forms.Label();
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.lblUserName = new System.Windows.Forms.Label();
@@ -57,8 +54,6 @@ namespace RealJabber
             this.txtStatus = new System.Windows.Forms.TextBox();
             this.btnSignOut = new System.Windows.Forms.Button();
             this.panelCredentials.SuspendLayout();
-            this.groupBoxShamelessPlug.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxGoogle)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.panelContact.SuspendLayout();
             this.SuspendLayout();
@@ -81,15 +76,14 @@ namespace RealJabber
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.panelCredentials.Controls.Add(this.lblLine4);
             this.panelCredentials.Controls.Add(this.richTextBox1);
-            this.panelCredentials.Controls.Add(this.groupBoxShamelessPlug);
             this.panelCredentials.Controls.Add(this.groupBox1);
             this.panelCredentials.Controls.Add(this.lblLine3);
             this.panelCredentials.Controls.Add(this.lblLine1);
             this.panelCredentials.Controls.Add(this.lblLine2);
             this.panelCredentials.Location = new System.Drawing.Point(12, 12);
             this.panelCredentials.Name = "panelCredentials";
-            this.panelCredentials.Size = new System.Drawing.Size(273, 554);
-            this.panelCredentials.TabIndex = 5;
+            this.panelCredentials.Size = new System.Drawing.Size(263, 476);
+            this.panelCredentials.TabIndex = 0;
             // 
             // lblLine4
             // 
@@ -98,7 +92,7 @@ namespace RealJabber
             this.lblLine4.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLine4.Location = new System.Drawing.Point(0, 63);
             this.lblLine4.Name = "lblLine4";
-            this.lblLine4.Size = new System.Drawing.Size(273, 17);
+            this.lblLine4.Size = new System.Drawing.Size(263, 17);
             this.lblLine4.TabIndex = 20;
             this.lblLine4.Text = "Build ###";
             this.lblLine4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -109,63 +103,20 @@ namespace RealJabber
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox1.BackColor = System.Drawing.SystemColors.Control;
             this.richTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.richTextBox1.Location = new System.Drawing.Point(4, 247);
+            this.richTextBox1.Location = new System.Drawing.Point(3, 266);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
             this.richTextBox1.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
-            this.richTextBox1.Size = new System.Drawing.Size(267, 155);
-            this.richTextBox1.TabIndex = 18;
-            this.richTextBox1.Text = "Experimental Implementation of\nXMPP Extension Protocol\n\nXEP-0XXX In-Band Real Tim" +
-                "e Text\nSpecification authored by Mark D. Rejhon.\nwww.realjabber.org\n\nMark Rejhon" +
-                "\nconsulting@rejtech.com\nwww.rejtech.com";
+            this.richTextBox1.Size = new System.Drawing.Size(257, 186);
+            this.richTextBox1.TabIndex = 2;
+            this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
             this.richTextBox1.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.richTextBox1_LinkClicked);
-            // 
-            // groupBoxShamelessPlug
-            // 
-            this.groupBoxShamelessPlug.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxShamelessPlug.Controls.Add(this.pictureBoxGoogle);
-            this.groupBoxShamelessPlug.Controls.Add(this.textBoxShamelessPlug);
-            this.groupBoxShamelessPlug.Location = new System.Drawing.Point(3, 406);
-            this.groupBoxShamelessPlug.Name = "groupBoxShamelessPlug";
-            this.groupBoxShamelessPlug.Size = new System.Drawing.Size(267, 146);
-            this.groupBoxShamelessPlug.TabIndex = 17;
-            this.groupBoxShamelessPlug.TabStop = false;
-            this.groupBoxShamelessPlug.Text = "Hey                             employees!";
-            // 
-            // pictureBoxGoogle
-            // 
-            this.pictureBoxGoogle.Image = ((System.Drawing.Image)(resources.GetObject("pictureBoxGoogle.Image")));
-            this.pictureBoxGoogle.InitialImage = null;
-            this.pictureBoxGoogle.Location = new System.Drawing.Point(31, 0);
-            this.pictureBoxGoogle.Name = "pictureBoxGoogle";
-            this.pictureBoxGoogle.Size = new System.Drawing.Size(80, 31);
-            this.pictureBoxGoogle.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.pictureBoxGoogle.TabIndex = 15;
-            this.pictureBoxGoogle.TabStop = false;
-            // 
-            // textBoxShamelessPlug
-            // 
-            this.textBoxShamelessPlug.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxShamelessPlug.BackColor = System.Drawing.SystemColors.Control;
-            this.textBoxShamelessPlug.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBoxShamelessPlug.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxShamelessPlug.Location = new System.Drawing.Point(6, 37);
-            this.textBoxShamelessPlug.Multiline = true;
-            this.textBoxShamelessPlug.Name = "textBoxShamelessPlug";
-            this.textBoxShamelessPlug.ReadOnly = true;
-            this.textBoxShamelessPlug.Size = new System.Drawing.Size(255, 107);
-            this.textBoxShamelessPlug.TabIndex = 17;
-            this.textBoxShamelessPlug.Text = resources.GetString("textBoxShamelessPlug.Text");
             // 
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.txtServer);
+            this.groupBox1.Controls.Add(this.cbServer);
             this.groupBox1.Controls.Add(this.lblServer);
             this.groupBox1.Controls.Add(this.txtPassword);
             this.groupBox1.Controls.Add(this.lblUserName);
@@ -174,19 +125,26 @@ namespace RealJabber
             this.groupBox1.Controls.Add(this.lblPassword);
             this.groupBox1.Location = new System.Drawing.Point(3, 94);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(267, 136);
+            this.groupBox1.Size = new System.Drawing.Size(257, 136);
             this.groupBox1.TabIndex = 14;
             this.groupBox1.TabStop = false;
             // 
-            // txtServer
+            // cbServer
             // 
-            this.txtServer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.cbServer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtServer.Location = new System.Drawing.Point(94, 72);
-            this.txtServer.Name = "txtServer";
-            this.txtServer.Size = new System.Drawing.Size(163, 20);
-            this.txtServer.TabIndex = 11;
-            this.txtServer.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtServer_KeyDown);
+            this.cbServer.FormattingEnabled = true;
+            this.cbServer.Items.AddRange(new object[] {
+            "talk.l.google.com",
+            "chat.facebook.com",
+            "jabber.org",
+            "localhost"});
+            this.cbServer.Location = new System.Drawing.Point(95, 72);
+            this.cbServer.Name = "cbServer";
+            this.cbServer.Size = new System.Drawing.Size(152, 21);
+            this.cbServer.TabIndex = 2;
+            this.cbServer.Text = "talk.l.google.com";
+            this.cbServer.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cbServer_KeyDown);
             // 
             // lblServer
             // 
@@ -205,8 +163,8 @@ namespace RealJabber
             this.txtPassword.Location = new System.Drawing.Point(94, 46);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '*';
-            this.txtPassword.Size = new System.Drawing.Size(163, 20);
-            this.txtPassword.TabIndex = 6;
+            this.txtPassword.Size = new System.Drawing.Size(153, 20);
+            this.txtPassword.TabIndex = 1;
             this.txtPassword.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtPassword_KeyDown);
             // 
             // lblUserName
@@ -225,7 +183,7 @@ namespace RealJabber
             this.btnSignin.Location = new System.Drawing.Point(93, 99);
             this.btnSignin.Name = "btnSignin";
             this.btnSignin.Size = new System.Drawing.Size(87, 27);
-            this.btnSignin.TabIndex = 7;
+            this.btnSignin.TabIndex = 3;
             this.btnSignin.Text = "Sign In";
             this.btnSignin.UseVisualStyleBackColor = true;
             this.btnSignin.Click += new System.EventHandler(this.btnSignin_Click);
@@ -236,8 +194,8 @@ namespace RealJabber
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUserName.Location = new System.Drawing.Point(94, 20);
             this.txtUserName.Name = "txtUserName";
-            this.txtUserName.Size = new System.Drawing.Size(163, 20);
-            this.txtUserName.TabIndex = 5;
+            this.txtUserName.Size = new System.Drawing.Size(153, 20);
+            this.txtUserName.TabIndex = 0;
             // 
             // lblPassword
             // 
@@ -256,7 +214,7 @@ namespace RealJabber
             this.lblLine3.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLine3.Location = new System.Drawing.Point(0, 46);
             this.lblLine3.Name = "lblLine3";
-            this.lblLine3.Size = new System.Drawing.Size(273, 17);
+            this.lblLine3.Size = new System.Drawing.Size(263, 17);
             this.lblLine3.TabIndex = 12;
             this.lblLine3.Text = "XMPP In-Band Real Time Text";
             this.lblLine3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -268,7 +226,7 @@ namespace RealJabber
             this.lblLine1.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLine1.Location = new System.Drawing.Point(0, 5);
             this.lblLine1.Name = "lblLine1";
-            this.lblLine1.Size = new System.Drawing.Size(273, 17);
+            this.lblLine1.Size = new System.Drawing.Size(263, 17);
             this.lblLine1.TabIndex = 11;
             this.lblLine1.Text = "Mark Rejhon\'s";
             this.lblLine1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -280,7 +238,7 @@ namespace RealJabber
             this.lblLine2.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLine2.Location = new System.Drawing.Point(0, 22);
             this.lblLine2.Name = "lblLine2";
-            this.lblLine2.Size = new System.Drawing.Size(273, 24);
+            this.lblLine2.Size = new System.Drawing.Size(263, 24);
             this.lblLine2.TabIndex = 10;
             this.lblLine2.Text = "Jabber / Google Talk";
             this.lblLine2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -297,7 +255,7 @@ namespace RealJabber
             this.panelContact.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelContact.Location = new System.Drawing.Point(0, 0);
             this.panelContact.Name = "panelContact";
-            this.panelContact.Size = new System.Drawing.Size(297, 578);
+            this.panelContact.Size = new System.Drawing.Size(287, 500);
             this.panelContact.TabIndex = 6;
             this.panelContact.Visible = false;
             this.panelContact.Click += new System.EventHandler(this.panelContact_Click);
@@ -318,7 +276,7 @@ namespace RealJabber
             this.rosterTree.SelectedImageIndex = 0;
             this.rosterTree.ShowLines = false;
             this.rosterTree.ShowRootLines = false;
-            this.rosterTree.Size = new System.Drawing.Size(281, 495);
+            this.rosterTree.Size = new System.Drawing.Size(271, 417);
             this.rosterTree.Sorted = true;
             this.rosterTree.StatusColor = System.Drawing.Color.Teal;
             this.rosterTree.TabIndex = 5;
@@ -345,7 +303,7 @@ namespace RealJabber
             this.lblStatus.ForeColor = System.Drawing.Color.Gray;
             this.lblStatus.Location = new System.Drawing.Point(8, 26);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(281, 20);
+            this.lblStatus.Size = new System.Drawing.Size(271, 20);
             this.lblStatus.TabIndex = 7;
             this.lblStatus.Text = "Click to enter your status message";
             this.lblStatus.Click += new System.EventHandler(this.labelStatus_Click);
@@ -375,7 +333,7 @@ namespace RealJabber
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.txtStatus.Location = new System.Drawing.Point(8, 24);
             this.txtStatus.Name = "txtStatus";
-            this.txtStatus.Size = new System.Drawing.Size(281, 20);
+            this.txtStatus.Size = new System.Drawing.Size(271, 20);
             this.txtStatus.TabIndex = 3;
             this.txtStatus.Visible = false;
             this.txtStatus.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtStatus_KeyDown);
@@ -383,7 +341,7 @@ namespace RealJabber
             // btnSignOut
             // 
             this.btnSignOut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSignOut.Location = new System.Drawing.Point(202, 548);
+            this.btnSignOut.Location = new System.Drawing.Point(192, 470);
             this.btnSignOut.Name = "btnSignOut";
             this.btnSignOut.Size = new System.Drawing.Size(88, 24);
             this.btnSignOut.TabIndex = 0;
@@ -395,7 +353,7 @@ namespace RealJabber
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 578);
+            this.ClientSize = new System.Drawing.Size(287, 500);
             this.Controls.Add(this.panelCredentials);
             this.Controls.Add(this.panelContact);
             this.MaximizeBox = false;
@@ -405,9 +363,6 @@ namespace RealJabber
             this.Load += new System.EventHandler(this.Form1_Load);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.panelCredentials.ResumeLayout(false);
-            this.groupBoxShamelessPlug.ResumeLayout(false);
-            this.groupBoxShamelessPlug.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxGoogle)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.panelContact.ResumeLayout(false);
@@ -437,13 +392,10 @@ namespace RealJabber
         private System.Windows.Forms.Label lblLine3;
         private System.Windows.Forms.Label lblLine1;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.PictureBox pictureBoxGoogle;
-        private System.Windows.Forms.TextBox textBoxShamelessPlug;
-        private System.Windows.Forms.GroupBox groupBoxShamelessPlug;
-        private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.Label lblServer;
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Label lblLine4;
+        private System.Windows.Forms.ComboBox cbServer;
     }
 }
 
