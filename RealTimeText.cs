@@ -8,7 +8,8 @@ namespace RealJabber.RealTimeTextUtil
 {
     /// <summary>
     /// HELPER UTILITY CLASS
-    /// XMPP In-Band Real Time Text - Version 0.0.2 - http://www.realjabber.org
+    /// Published XMPP Extension http://www.xmpp.org/extensions/xep-0301.html
+    /// XEP-0301: In-Band Real Time Text - Version 0.0.3 - http://www.realjabber.org
     /// Written by Mark D. Rejhon - mailto:markybox@gmail.com - http://www.marky.com/resume
     ///
     /// COPYRIGHT
@@ -27,13 +28,14 @@ namespace RealJabber.RealTimeTextUtil
     /// 
     /// TABLE OF SUPPORTED ACTION ELEMENTS
     /// For more information, please see http://www.realjabber.org
-    ///   TIER    ACTION           CODE                  DESCRIPTION
-    ///   1       Insert           <t p='#'>text</t>     Insert specified text at position p in message.
-    ///   1       Backspace        <e p='#' n='#'/>      Deletes n characters of text to the left of position p in message.
-    ///   1       Forward Delete   <d p='#' n='#'/>      Deletes n characters of text to the right of position p in message.
-    ///   2       Cursor Position  <c p='#'/>            Move cursor to position p in message.
-    ///   2       Delay            <w n='#'/>            Execute a pause of n hundredths of a second.
-    ///   2       Beep             <g/>                  Executes a flash/beep/buzz.
+    /// 
+    /// TIER ACTION           CODE               DESCRIPTION
+    ///   1  Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes)
+    ///   1  Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+    ///   1  Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
+    ///   2  Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
+    ///   2  Cursor Position  <c p='#'/>         (OPTIONAL) Move cursor to position p in message. (Remote Cursor)
+    ///   2  Beep             <g/>               (OPTIONAL) Executes a flash/beep/buzz. Deaf-friendly feature.
     /// 
     /// IMPORTANT NOTICE
     /// Mark Rejhon retains copyright to the use of the name "RealJabber".
@@ -45,7 +47,7 @@ namespace RealJabber.RealTimeTextUtil
         // Specification constants
         public const string ROOT = "rtt";
         public const string NAMESPACE = "urn:xmpp:rtt:0";
-        public const string VERSION = "0.0.2";
+        public const string VERSION = "0.0.3";
 
         /// <summary>The default recommended transmission for transmission of real time text</summary>
         public const int INTERVAL_DEFAULT = 1000;
