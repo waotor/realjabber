@@ -52,7 +52,6 @@ namespace RealJabber
         // Recommended, see http://code.google.com/p/jabber-net/wiki/FAQ_GoogleTalk
         // May need to use "jabberClient1.NetworkHost = talk.l.google.com"; // If using Mono on Linux/Mac etc.
         const string DEFAULT_SERVER = "talk.l.google.com";
-        string login;
         static ManualResetEvent done = new ManualResetEvent(false);
         
         RosterManager rosterMgr;
@@ -103,7 +102,7 @@ namespace RealJabber
             if (String.IsNullOrEmpty(jid.User))
             {
                 jabberClient.User = txtUserName.Text;
-                jabberClient.Server = "gmail.com";
+                jabberClient.Server = cbServer.Text.Equals(DEFAULT_SERVER) ? "gmail.com" : cbServer.Text;
             }
             else
             {
@@ -230,7 +229,7 @@ namespace RealJabber
             if (selectedNode != null)
             {
                 string bareJID = selectedNode.JID.Bare;
-                string nickName = chatNicknames[bareJID] as string;
+                string nickName = !String.IsNullOrEmpty(selectedNode.Nickname) ? selectedNode.Nickname : bareJID;
                 FrmChat chatWindow = chatForms[bareJID] as FrmChat;
                 if ((chatWindow == null) || (chatWindow.Visible == false))
                 {
@@ -246,9 +245,11 @@ namespace RealJabber
 
         private void jabberClient_OnMessage(object sender, jabber.protocol.client.Message msg)
         {
-            // Do we already have a chat window for this message?
             bool newWindow = false;
             string bareJID = msg.From.Bare;
+            string nickName = chatNicknames[bareJID] as string;
+
+            // Do we already have a chat window for this message?
             FrmChat chatWindow = chatForms[bareJID] as FrmChat;
 
             if (chatWindow == null)
@@ -256,7 +257,7 @@ namespace RealJabber
                 // Create chat window only when receiving first full-line message.
                 if (msg.Body != null)
                 {
-                    chatWindow = InitializeChatWindow(msg.From, chatNicknames[bareJID] as string);
+                    chatWindow = InitializeChatWindow(msg.From, nickName);
                     newWindow = true;
                 }
             }

@@ -181,7 +181,7 @@ namespace RealJabber
                     line = rttLine.Decoder.Text;
                     if (cursorChar != 0)
                     {
-                        line = line.Insert(rttLine.Decoder.CurPos, cursorChar.ToString());
+                        line = line.Insert(rttLine.Decoder.CursorPos, cursorChar.ToString());
                     }
                     AddFormattedChatLine(rtf, formatString, rttLine.JID.Bare, line, rttLine.Color, rttTextColor);
                 }
@@ -235,7 +235,7 @@ namespace RealJabber
         {
             RealTimeMessage rtt = new RealTimeMessage(jid, colorValue);
             chatRealTime[(string)jid] = rtt;
-            rtt.Decoder = new RealTimeText.Decoder(doc, jid);
+            rtt.Decoder = new RealTimeText.Decoder(doc);
             return rtt;
         }
     }
