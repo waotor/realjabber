@@ -574,7 +574,7 @@ namespace RealJabber.RealTimeTextUtil
                 }
             }
 
-            /// <summary>Stop the background decoder</summary>
+            /// <summary>Starts the background decoder</summary>
             private void TriggerDecodeThread()
             {
                 lock (rttElementQueue)
@@ -640,7 +640,7 @@ namespace RealJabber.RealTimeTextUtil
                     if (interval > 0)
                     {
                         // Calculate the delay interval and then sleep for that interval if needed. 
-                        // IMPORTANT: This SAVES BATTERY on mobile devices!
+                        // IMPORTANT: This SAVES BATTERY on mobile devices! (avoids unnecessary processing)
                         interval = delayCalculator.GetCompensatedDelay(interval);
                         if (interval > 0) Thread.Sleep(interval);
                         interval = 0;
@@ -648,6 +648,7 @@ namespace RealJabber.RealTimeTextUtil
                     else
                     {
                         // Zero interval. Stop the delay calculator, and suspend this thread until the next RTT element
+                        // IMPORTANT: This also SAVES BATTERY on mobile devices! (turns off unnecessary timers when idling with no typing going on)
                         delayCalculator.Stop();
                         rttElementEvent.WaitOne(IDLE_THREAD_QUIT_INTERVAL);
                         rttElementEvent.Reset();
@@ -668,7 +669,7 @@ namespace RealJabber.RealTimeTextUtil
             }
 
             /// <summary>Add RTT text to the decode queue</summary>
-            /// <param name="rtt">Text that may also contain RTT edit action elements</param>
+            /// <param name="rtt">RTT element that contains RTT action elements</param>
             /// <returns>true if successfully buffered</returns>
             public bool Decode(XmlElement rttNew)
             {
@@ -692,16 +693,16 @@ namespace RealJabber.RealTimeTextUtil
                             {
                                 case "new":
                                     // New RTT message. This brings us into SYNC.
-                                    activated = true;
                                     Reset();
+                                    activated = true;
                                     seq = seqNewValue;
                                     rttElementQueue.Add(rttNew);
                                     if (SyncStateChanged != null) SyncStateChanged(true);
                                     break;
                                 case "reset":
                                     // Reset RTT message. This brings us into SYNC.
-                                    activated = true;
                                     Reset();
+                                    activated = true;
                                     seq = seqNewValue;
                                     rttElementQueue.Add(rttNew);
                                     if (SyncStateChanged != null) SyncStateChanged(true);
@@ -732,7 +733,7 @@ namespace RealJabber.RealTimeTextUtil
                     }
                     catch (Exception ex)
                     {
-                        // Any exception occuring at this point, should be assumed as an OUT-OF-SYNC condition. (i.e. NumberFormatException, etc)
+                        // Any exception occurring at this point, should be assumed as an OUT-OF-SYNC condition. (i.e. NumberFormatException, etc)
                         Debug.Write("EXCEPTION: thrown in RTTdecode.Queue: " + ex.ToString());
                         sync = false;
                     }
@@ -758,8 +759,8 @@ namespace RealJabber.RealTimeTextUtil
                     {
                         RealTimeText.DecodeRawRTT(rtt, message);
                     }
-                    message.DelaysEnabled = true;
                     rttElementQueue.Clear();
+                    message.DelaysEnabled = true;
                     return message.Text;
                 }
             }
@@ -782,13 +783,13 @@ namespace RealJabber.RealTimeTextUtil
                 get { lock (rttElementQueue) return message.CursorPos; }
             }
 
-            /// <summary>Returns true if activated (Thread safe)</summary>
+            /// <summary>Activated flag. False means real time text is not activated. (Thread safe)</summary>
             public bool IsActivated
             {
                 get { lock (rttElementQueue) return activated; } 
             }
 
-            /// <summary>Returns true if currently synchronized (Thread safe)</summary>
+            /// <summary>Sync flag. False means real time text is out of sync. (Thread safe)</summary>
             public bool InSync
             {
                 get { lock (rttElementQueue) return sync; }
