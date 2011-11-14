@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Xml;
@@ -7,40 +7,45 @@ using System.Xml;
 namespace RealJabber.RealTimeTextUtil
 {
     /// <summary>
-    /// HELPER UTILITY CLASS
-    /// Published XMPP Extension http://www.xmpp.org/extensions/xep-0301.html
-    /// XEP-0301: In-Band Real Time Text - Version 0.0.3 - http://www.realjabber.org
-    /// Written by Mark D. Rejhon - mailto:markybox@gmail.com - http://www.marky.com/resume
-    ///
-    /// COPYRIGHT
-    /// Copyright 2011 by Mark D. Rejhon - Rejhon Technologies Inc.
+    /// HELPER UTILITY CLASS FOR:
+    ///   XMPP EXTENSION: http://www.xmpp.org/extensions/xep-0301.html
+    ///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.0.3 - http://www.realjabber.org
+    ///    
+    ///         LANGUAGE: C# .NET
+    ///       XML PARSER: System.Xml (part of .NET)
+    ///     XMPP LIBRARY: No internal dependency
+    ///           AUTHOR: Mark D. Rejhon - mailto:markybox@gmail.com - http://www.marky.com/resume
+    ///        COPYRIGHT: Copyright 2011 by Mark D. Rejhon - Rejhon Technologies Inc.
+    ///          LICENSE: Apache 2.0 - Open Source - Commercial usage is permitted.
     /// 
     /// LICENSE
-    /// Licensed under the Apache License, Version 2.0 (the "License");
-    /// you may not use this file except in compliance with the License.
-    /// You may obtain a copy of the License at
+    ///   Licensed under the Apache License, Version 2.0 (the "License");
+    ///   you may not use this file except in compliance with the License.
+    ///   You may obtain a copy of the License at
+    /// 
     ///     http://www.apache.org/licenses/LICENSE-2.0
-    /// Unless required by applicable law or agreed to in writing, software
-    /// distributed under the License is distributed on an "AS IS" BASIS,
-    /// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    /// See the License for the specific language governing permissions and
-    /// limitations under the License.
+    ///     
+    ///   Unless required by applicable law or agreed to in writing, software
+    ///   distributed under the License is distributed on an "AS IS" BASIS,
+    ///   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    ///   See the License for the specific language governing permissions and
+    ///   limitations under the License.
     /// 
     /// TABLE OF SUPPORTED ACTION ELEMENTS
-    /// For more information, please see http://www.realjabber.org
-    /// 
-    /// TIER ACTION           CODE               DESCRIPTION
-    ///   1  Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes)
-    ///   1  Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-    ///   1  Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
-    ///   2  Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
-    ///   2  Cursor Position  <c p='#'/>         (OPTIONAL) Move cursor to position p in message. (Remote Cursor)
-    ///   2  Beep             <g/>               (OPTIONAL) Executes a flash/beep/buzz. Deaf-friendly feature.
+    ///   For more information, please see http://www.realjabber.org
+    ///   ----------------------------------------------------------
+    ///   TIER ACTION           CODE               DESCRIPTION
+    ///     1  Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes)
+    ///     1  Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+    ///     1  Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
+    ///     2  Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
+    ///     2  Cursor Position  <c p='#'/>         (OPTIONAL) Move cursor to position p in message. (Remote Cursor)
+    ///     2  Beep             <g/>               (OPTIONAL) Executes a flash/beep/buzz. Deaf-friendly feature.
     /// 
     /// IMPORTANT NOTICE
-    /// Mark Rejhon retains copyright to the use of the name "RealJabber".
-    /// Modified versions of this software not released by Mark Rejhon must be released under a 
-    /// different name than "RealJabber".
+    ///   Mark Rejhon retains copyright to the use of the name "RealJabber".
+    ///   Modified versions of this software not released by Mark Rejhon must be released under a 
+    ///   different name than "RealJabber".
     /// </summary>
     public class RealTimeText
     {
@@ -520,9 +525,8 @@ namespace RealJabber.RealTimeTextUtil
         public class Decoder
         {
             private XmlDocument doc;
-            private string user;
             private RealTimeText.Message message = new RealTimeText.Message();
-            private ArrayList rttElementQueue = new ArrayList();
+            private List<XmlElement> rttElementQueue = new List<XmlElement>();
             private bool sync = false;
             private bool activated = false;
             private uint seq = 0;
@@ -542,17 +546,16 @@ namespace RealJabber.RealTimeTextUtil
 
             /// <summary>Constructor</summary>
             /// <param name="setUser">XMPP user for this Real Time Text (RTT) decoder</param>
-            public Decoder(XmlDocument setDoc, string setUser)
+            public Decoder(XmlDocument setDoc)
             {
                 doc = setDoc;
-                user = setUser;
                 Reset();
             }
 
             /// <summary>Stops the decoder thread</summary>
             public void Dispose()
             {
-                lock (user)
+                lock (rttElementQueue)
                 {
                     enableThread = false;
                     rttElementEvent.Set();
@@ -562,7 +565,7 @@ namespace RealJabber.RealTimeTextUtil
             /// <summary>Reinitialize the RTT decoder to a blank string state (new message)</summary>
             public void Reset()
             {
-                lock (user)
+                lock (rttElementQueue)
                 {
                     rttElementQueue.Clear();
                     message.Reset();
@@ -574,7 +577,7 @@ namespace RealJabber.RealTimeTextUtil
             /// <summary>Stop the background decoder</summary>
             private void TriggerDecodeThread()
             {
-                lock (user)
+                lock (rttElementQueue)
                 {
                     if (!enableThread)
                     {
@@ -601,7 +604,7 @@ namespace RealJabber.RealTimeTextUtil
 
                 while (true)
                 {
-                    lock (user)
+                    lock (rttElementQueue)
                     {
                         if (!enableThread) break;
                         
@@ -614,7 +617,7 @@ namespace RealJabber.RealTimeTextUtil
                             // Loop to decode RTT elements
                             while (enableThread && (rttElementQueue.Count > 0))
                             {
-                                rtt = rttElementQueue[0] as XmlElement;
+                                rtt = rttElementQueue[0];
                                 RealTimeText.DecodeRawRTT(rtt, message);
                                 if (!rtt.HasChildNodes) rttElementQueue.RemoveAt(0);
 
@@ -651,7 +654,7 @@ namespace RealJabber.RealTimeTextUtil
 
                         // Exit thread if we've waited long enough with no elements arrived. Thread will restart automatically.
                         // This saves system resources (and battery life on mobiles) if there's lots of chat windows.
-                        lock (user)
+                        lock (rttElementQueue)
                         {
                             if (rttElementQueue.Count == 0)
                             {
@@ -671,7 +674,7 @@ namespace RealJabber.RealTimeTextUtil
             {
                 if (rttNew == null) return false;
 
-                lock (user)
+                lock (rttElementQueue)
                 {
                     try
                     {
@@ -748,7 +751,7 @@ namespace RealJabber.RealTimeTextUtil
             /// <returns>Resulting decoded message</returns>
             public string FullDecodeNow()
             {
-                lock (user)
+                lock (rttElementQueue)
                 {
                     message.DelaysEnabled = false;
                     foreach (XmlElement rtt in rttElementQueue)
@@ -761,40 +764,34 @@ namespace RealJabber.RealTimeTextUtil
                 }
             }
 
-            /// <summary>Gets the XMPP user of this real time text object (Thread safe)</summary>
-            public string User
-            {
-                get { lock (user) return user; }
-            }
-
             /// <summary>Gets the current state of the message string (Thread safe)</summary>
             public string Text
             {
-                get { lock (user) return message.Text; }
+                get { lock (rttElementQueue) return message.Text; }
             }
 
             /// <summary>Alias for Decoder.Text</summary>
             public override string ToString()
             {
-                lock (user) return message.Text;
+                lock (rttElementQueue) return message.Text;
             }
 
             /// <summary>Gets the current character index position of the cursor (Thread safe)</summary>
-            public int CurPos
+            public int CursorPos
             {
-                get { lock (user) return message.CursorPos; }
+                get { lock (rttElementQueue) return message.CursorPos; }
             }
 
             /// <summary>Returns true if activated (Thread safe)</summary>
             public bool IsActivated
             {
-                get { lock (user) return activated; } 
+                get { lock (rttElementQueue) return activated; } 
             }
 
             /// <summary>Returns true if currently synchronized (Thread safe)</summary>
             public bool InSync
             {
-                get { lock (user) return sync; }
+                get { lock (rttElementQueue) return sync; }
             }
         }
 
@@ -808,13 +805,13 @@ namespace RealJabber.RealTimeTextUtil
             private XmlDocument doc;
             private RealTimeText.Message prevMessage = new RealTimeText.Message();
             private XmlElement rtt;
-            private int interval = RealTimeText.INTERVAL_DEFAULT;
+            private int transmitInterval = RealTimeText.INTERVAL_DEFAULT;
             private bool newMsg;
             private UInt32 seq = 0;
             private DelayCalculator delayCalculator = new DelayCalculator();
 
             /// <summary>Constructor.</summary>
-            /// <param name="enableDelays">Flag to enable encoding of delays</param>
+            /// <param name="enableDelays">Flag to enable encoding of delays between key presses</param>
             public Encoder(XmlDocument setDoc, bool enableDelays)
             {
                 newMsg = true;
@@ -880,7 +877,7 @@ namespace RealJabber.RealTimeTextUtil
                         int milliseconds = delayCalculator.GetMillisecondsSinceLastCall();
                         if (milliseconds > 0)
                         {
-                            if (milliseconds > interval) milliseconds = interval; // Limit delays to maximum interval.
+                            if (milliseconds > transmitInterval) milliseconds = transmitInterval; // Limit delays to maximum interval.
                             RealTimeText.AppendElement.Delay(rtt, milliseconds);
                         }
                     }
@@ -906,26 +903,26 @@ namespace RealJabber.RealTimeTextUtil
             }
 
             /// <summary>Get the last state of the cursor position index</summary>
-            public int CurPos
+            public int CursorPos
             {
                 get { return prevMessage.CursorPos; }
             }
 
             /// <summary>Get the status of the RTT encoder, if there is any rtt action elements to transmit</summary>
-            public bool Empty
+            public bool IsEmpty
             {
                 get { return !rtt.HasChildNodes; }
             }
 
-            /// <summary>Get the current real time text interval</summary>
-            public int Interval
+            /// <summary>Transmission interval of real time text</summary>
+            public int TransmitInterval
             {
-                get { return interval; }
-                set { interval = value; }
+                get { return transmitInterval; }
+                set { transmitInterval = value; }
             }
 
-            /// <summary>Enable transmission of delay action elements</summary>
-            public bool Delays
+            /// <summary>Enabled/Disabled state of transmission of interval elements, for encoding of pauses between keypresses</summary>
+            public bool DelaysEnabled
             {
                 get { return prevMessage.DelaysEnabled; }
                 set { prevMessage.DelaysEnabled = value; }
