@@ -2,6 +2,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealJabber", "RealJabber.csproj", "{CD74B9DD-0293-457F-8E2B-3E03B6F2F551}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "RealJabberSetup", "..\Setup\RealJabberSetup.vdproj", "{A426461F-1935-45C9-B8A9-4061F42AE8B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,6 +14,10 @@ Global
 		{CD74B9DD-0293-457F-8E2B-3E03B6F2F551}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD74B9DD-0293-457F-8E2B-3E03B6F2F551}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD74B9DD-0293-457F-8E2B-3E03B6F2F551}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A426461F-1935-45C9-B8A9-4061F42AE8B6}.Debug|Any CPU.ActiveCfg = Debug
+		{A426461F-1935-45C9-B8A9-4061F42AE8B6}.Debug|Any CPU.Build.0 = Debug
+		{A426461F-1935-45C9-B8A9-4061F42AE8B6}.Release|Any CPU.ActiveCfg = Release
+		{A426461F-1935-45C9-B8A9-4061F42AE8B6}.Release|Any CPU.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

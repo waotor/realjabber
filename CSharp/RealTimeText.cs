@@ -9,14 +9,14 @@ namespace RealJabber.RealTimeTextUtil
     /// <summary>
     /// HELPER UTILITY CLASS FOR:
     ///   XMPP EXTENSION: http://www.xmpp.org/extensions/xep-0301.html
-    ///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.0.3 - http://www.realjabber.org
+    ///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.0.4 - http://www.realjabber.org
     ///    
     ///         LANGUAGE: C# .NET
     ///       XML PARSER: System.Xml (part of .NET)
     ///     XMPP LIBRARY: No internal dependency
     ///           AUTHOR: Mark D. Rejhon - mailto:markybox@gmail.com - http://www.marky.com/resume
-    ///        COPYRIGHT: Copyright 2011 by Mark D. Rejhon - Rejhon Technologies Inc.
-    ///          LICENSE: Apache 2.0 - Open Source - Commercial usage is permitted.
+    ///        COPYRIGHT: Copyright 2011, 2012 by Mark D. Rejhon - Rejhon Technologies Inc.
+    ///          LICENSE: Apache 2.0 - Open Source - Commercial use is allowed!
     /// 
     /// LICENSE
     ///   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,28 +34,24 @@ namespace RealJabber.RealTimeTextUtil
     /// TABLE OF SUPPORTED ACTION ELEMENTS
     ///   For more information, please see http://www.realjabber.org
     ///   ----------------------------------------------------------
-    ///   TIER ACTION           CODE               DESCRIPTION
-    ///     1  Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes)
-    ///     1  Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-    ///     1  Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
-    ///     2  Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
-    ///     2  Cursor Position  <c p='#'/>         (OPTIONAL) Move cursor to position p in message. (Remote Cursor)
-    ///     2  Beep             <g/>               (OPTIONAL) Executes a flash/beep/buzz. Deaf-friendly feature.
-    /// 
-    /// IMPORTANT NOTICE
-    ///   Mark Rejhon retains copyright to the use of the name "RealJabber".
-    ///   Modified versions of this software not released by Mark Rejhon must be released under a 
-    ///   different name than "RealJabber".
+    ///   ACTION           CODE               DESCRIPTION
+    ///   Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
+    ///   Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+    ///   Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
+    ///   Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
     /// </summary>
     public class RealTimeText
     {
         // Specification constants
         public const string ROOT = "rtt";
         public const string NAMESPACE = "urn:xmpp:rtt:0";
-        public const string VERSION = "0.0.3";
+        public const string VERSION = "0.0.4";
 
         /// <summary>The default recommended transmission for transmission of real time text</summary>
-        public const int INTERVAL_DEFAULT = 1000;
+        public const int DEFAULT_INTERVAL = 1000;
+
+        /// <summary>The default recommended redundancy period (in milliseconds) for retransmits for fault tolerance</summary>
+        public const int DEFAULT_REDUNDANCY_PERIOD = 10000;
 
         /// <summary>Tests the encoder/decoder against each other for debug purposes. This reduces performance.</summary>
         public const bool TEST_RTT_CODEC = false;
@@ -68,7 +64,6 @@ namespace RealJabber.RealTimeTextUtil
             private String text = "";
             private int pos = 0;
             private int delay = 0;
-            private bool beeped = false;
             private bool delaysEnabled = false;
 
             /// <summary>Main constructor</summary>
@@ -87,7 +82,6 @@ namespace RealJabber.RealTimeTextUtil
                 text = "";
                 pos = 0;
                 delay = 0;
-                beeped = false;
             }
 
             /// <summary>Clones this object</summary>
@@ -108,13 +102,6 @@ namespace RealJabber.RealTimeTextUtil
             {
                 get { return pos; }
                 set { pos = value; }
-            }
-
-            /// <summary>Gets/sets the flash/beep status flag</summary>
-            public bool Beeped
-            {
-                get { return beeped; }
-                set { beeped = value; }
             }
 
             /// <summary>Gets/sets the current delay value</summary>
@@ -193,16 +180,6 @@ namespace RealJabber.RealTimeTextUtil
                 rtt.AppendChild(deleteCode);
             }
 
-            /// <summary>C Element - Cursor Position - Set cursor position to specified index</summary>
-            /// <param name="rtt">The rtt element to append to</param>
-            /// <param name="pos">New cursor position index</param>
-            public static void CursorPosition(XmlElement rtt, int pos)
-            {
-                XmlElement cursorCode = rtt.OwnerDocument.CreateElement("c");
-                cursorCode.SetAttribute("p", pos.ToString());
-                rtt.AppendChild(cursorCode);
-            }
-
             /// <summary>W Element - Delay - Pause specified amount for a delay between actions (including keypresses)</summary>
             /// <param name="rtt">The rtt element to append to</param>
             /// <param name="milliseconds">Number of thousandths of seconds to delay</param>
@@ -216,12 +193,14 @@ namespace RealJabber.RealTimeTextUtil
                 }
             }
 
-            /// <summary>G Element - Flash - Brief visual flash/buzz/beep</summary>
-            /// <param name="rtt">The rtt element to flash/beep/buzz</param>
-            public static void Flash(XmlElement rtt)
+            /// <summary>Cursor Position is simply a blank "Insert Text" element with a 'p' value.</summary>
+            /// <param name="rtt">The rtt element to append to</param>
+            /// <param name="pos">New cursor position index</param>
+            public static void CursorPosition(XmlElement rtt, int pos)
             {
-                XmlElement resetCode = rtt.OwnerDocument.CreateElement("g");
-                rtt.AppendChild(resetCode);
+                XmlElement cursorCode = rtt.OwnerDocument.CreateElement("t");
+                cursorCode.SetAttribute("p", pos.ToString());
+                rtt.AppendChild(cursorCode);
             }
         }
 
@@ -270,9 +249,12 @@ namespace RealJabber.RealTimeTextUtil
                     switch (editElement.Name)
                     {
                         case "t": // Insert action element:              <t p="#">text</i>
-                            message.CursorPos = pos;
-                            text = text.Insert(message.CursorPos, editElement.InnerText);
-                            message.CursorPos = message.CursorPos + editElement.InnerText.Length;
+                            message.CursorPos = pos;  // Reposition cursor even if <t> is empty.
+                            if (!String.IsNullOrEmpty(editElement.InnerText))
+                            {
+                                text = text.Insert(message.CursorPos, editElement.InnerText);
+                                message.CursorPos = message.CursorPos + editElement.InnerText.Length;
+                            }
                             break;
                         case "e": // Backspace action element:           <e p="#" n="#"/>
                             message.CursorPos = pos;
@@ -284,9 +266,6 @@ namespace RealJabber.RealTimeTextUtil
                             message.CursorPos = pos;
                             text = text.Remove(message.CursorPos, count);
                             break;
-                        case "c": // Cursor Position action element:     <c p="#"/>
-                            message.CursorPos = pos;
-                            break;
                         case "w": // Delay code                          <w n="#"/>
                             if (message.DelaysEnabled)
                             {
@@ -295,9 +274,6 @@ namespace RealJabber.RealTimeTextUtil
                                 // We exit the loop so that the caller can decide to use a timer for the delay code,
                                 // and come back to this loop later to finish remaining nodes that have not finished processing.
                             }
-                            break;
-                        case "g": // Flash action element:               <g/>
-                            message.Beeped = true;
                             break;
                     }
                 }
@@ -313,7 +289,7 @@ namespace RealJabber.RealTimeTextUtil
 
         // ################################################################################################################
 
-        /// <summary>Encode RTT edit action elements on a string of text to turn one string to the next string.
+        /// <summary>Encode RTT action elements on a string of text to turn one string to the next string.
         /// This follows the XMPP Real Time Text Specification.</summary>
         /// <param name="rtt">The rtt element object</param>
         /// <param name="before">Previous real time message</param>
@@ -402,7 +378,7 @@ namespace RealJabber.RealTimeTextUtil
                 AppendElement.Insert(rtt, insertedText, curPos, before.Text.Length);
                 curPos += charsInserted;
 
-                // Execute a <c> CURSOR POSITION operation to move cursor to final location, if last edit action element didn't put cursor there.
+                // Execute a <c> CURSOR POSITION operation to move cursor to final location, if last action element didn't put cursor there.
                 if (curPos != after.CursorPos)
                 {
                     AppendElement.CursorPosition(rtt, after.CursorPos);
@@ -537,7 +513,7 @@ namespace RealJabber.RealTimeTextUtil
 
             /// <summary>Callback event that is called everytime sync state changes (loss of sync, caused by missing or out-of-order rtt packets)</summary>
             public event SyncStateChangedHandler SyncStateChanged = null;
-            public delegate void SyncStateChangedHandler(bool isInSync);
+            public delegate void SyncStateChangedHandler(Decoder decoder, bool isInSync);
 
             Thread decodeThread;
             private bool enableThread = false;
@@ -692,20 +668,13 @@ namespace RealJabber.RealTimeTextUtil
                             switch (eventAttr.Value.ToLower())
                             {
                                 case "new":
-                                    // New RTT message. This brings us into SYNC.
-                                    Reset();
-                                    activated = true;
-                                    seq = seqNewValue;
-                                    rttElementQueue.Add(rttNew);
-                                    if (SyncStateChanged != null) SyncStateChanged(true);
-                                    break;
                                 case "reset":
-                                    // Reset RTT message. This brings us into SYNC.
+                                    // New/Reset RTT message. This brings us into SYNC.
                                     Reset();
                                     activated = true;
                                     seq = seqNewValue;
                                     rttElementQueue.Add(rttNew);
-                                    if (SyncStateChanged != null) SyncStateChanged(true);
+                                    if (SyncStateChanged != null) SyncStateChanged(this, true);
                                     break;
                                 case "start":
                                     activated = true;
@@ -741,7 +710,7 @@ namespace RealJabber.RealTimeTextUtil
                     if (!sync)
                     {
                         // If we're no longer in sync, then inform this object's owner
-                        if (SyncStateChanged != null) SyncStateChanged(false);
+                        if (SyncStateChanged != null) SyncStateChanged(this, false);
                     }
                     TriggerDecodeThread();
                 }
@@ -804,35 +773,45 @@ namespace RealJabber.RealTimeTextUtil
         public class Encoder 
         {
             private XmlDocument doc;
-            private RealTimeText.Message prevMessage = new RealTimeText.Message();
+            private RealTimeText.Message messagePrevious = new RealTimeText.Message();
+            private RealTimeText.Message message = new RealTimeText.Message();
             private XmlElement rtt;
-            private int transmitInterval = RealTimeText.INTERVAL_DEFAULT;
-            private bool newMsg;
+            private bool newMsg = true;
             private UInt32 seq = 0;
+
+            // Transmit interval variables
             private DelayCalculator delayCalculator = new DelayCalculator();
+            private int transmitInterval = RealTimeText.DEFAULT_INTERVAL;
+            
+            // Fault tolerant redundancy variables
+            private bool fullMessageTransmit = false;
+            private bool redundancy = true;
+            private Stopwatch redundancyClock = new Stopwatch();
+            private int redundancyPeriod = RealTimeText.DEFAULT_REDUNDANCY_PERIOD;
 
             /// <summary>Constructor.</summary>
             /// <param name="enableDelays">Flag to enable encoding of delays between key presses</param>
             public Encoder(XmlDocument setDoc, bool enableDelays)
             {
-                newMsg = true;
-                seq = 0;
-                prevMessage.DelaysEnabled = enableDelays;
+                message.DelaysEnabled = enableDelays;
                 doc = setDoc;
-                Reset();
+                Clear();
             }
 
             /// <summary>Reinitialize the RTT encoder to a blank string state</summary>
-            public void Reset()
+            public void Clear()
             {
-                prevMessage.Reset();
+                redundancyClock.Reset();
+                fullMessageTransmit = false;
+                message.Reset();
+                messagePrevious.Reset();
                 rtt = doc.CreateElement(RealTimeText.ROOT);
             }
 
             /// <summary>Resets the RTT encoder to starts a new message</summary>
             public void NextMsg()
             {
-                Reset();
+                Clear();
                 newMsg = true;
             }
 
@@ -844,12 +823,46 @@ namespace RealJabber.RealTimeTextUtil
                 rttEncoded.SetAttribute("seq", seq.ToString());
                 seq++;
 
-                // 'event' attribute.  The first RTT element of a real time message always has event='new'
                 if (newMsg)
                 {
+                    // The first RTT element of a new message always has event='new'
+                    // (i.e. This rtt element contains the first character(s) typed)
                     rttEncoded.SetAttribute("event", "new");
                     newMsg = false;
+                    if (redundancy)
+                    {
+                        redundancyClock.Reset();
+                        redundancyClock.Start();
+                    }
                 }
+                else 
+                {
+                    // Fault tolerance: Automatic retransmission
+                    if (redundancy && (redundancyClock.ElapsedMilliseconds > redundancyPeriod))
+                    {
+                        fullMessageTransmit = true;
+                        redundancyClock.Reset();
+                        redundancyClock.Start();
+                    }
+                    // Automatic and/or manually forced message retransmission
+                    if (fullMessageTransmit)
+                    {
+                        rttEncoded.SetAttribute("event", "reset");
+                        if (messagePrevious.CursorPos != messagePrevious.Text.Length)
+                        {
+                            // For clients supporting a remote cursor position, a blank INSERT TEXT <t> element is used to set the cursor position.
+                            XmlElement resetPos = rttEncoded.OwnerDocument.CreateElement("t");
+                            resetPos.SetAttribute("p", messagePrevious.CursorPos.ToString());
+                            rtt.PrependChild(resetPos);
+                        }
+                        // Retransmission of full message text in an INSERT TEXT <t> element.
+                        XmlElement resetText = rttEncoded.OwnerDocument.CreateElement("t");
+                        resetText.InnerText = messagePrevious.Text;
+                        rtt.PrependChild(resetText);
+                    }
+                }
+                fullMessageTransmit = false;
+                messagePrevious = message.Clone();
 
                 // Create new RTT element for next message.
                 rtt = doc.CreateElement(RealTimeText.ROOT);
@@ -861,17 +874,10 @@ namespace RealJabber.RealTimeTextUtil
             /// <param name="cursorPos">Current position index of cursor into text</param>
             public void Encode(string text, int cursorPos)
             {
-                if ((text != prevMessage.Text) || (cursorPos != prevMessage.CursorPos))
+                if ((text != message.Text) || (cursorPos != message.CursorPos))
                 {
-                    // If necessary, generate the 'g' beep action element
-                    if (prevMessage.Beeped)
-                    {
-                        RealTimeText.AppendElement.Flash(rtt);
-                        prevMessage.Beeped = false;
-                    }
-
                     // If necessary, generate the 'w' delay action element
-                    if (prevMessage.DelaysEnabled)
+                    if (message.DelaysEnabled)
                     {
                         if (!rtt.HasChildNodes) delayCalculator.Start(); // Delay calculator starts on first rtt element.
 
@@ -885,28 +891,42 @@ namespace RealJabber.RealTimeTextUtil
 
                     // Encode the text differences since last message, into action elements.
                     RealTimeText.Message newMessage = new RealTimeText.Message(text, cursorPos);
-                    RealTimeText.EncodeRawRTT(rtt, prevMessage, newMessage);
-                    prevMessage.Text = text;
-                    prevMessage.CursorPos = cursorPos;
+                    RealTimeText.EncodeRawRTT(rtt, message, newMessage);
+                    message.Text = text;
+                    message.CursorPos = cursorPos;
                 }
             }
 
             /// <summary>Gets the last state of the text</summary>
             public string Text
             {
-                get { return prevMessage.Text; }
+                get { return message.Text; }
             }
 
             /// <summary>Alias for Encoder.Text</summary>
             public override string ToString()
             {
-                return prevMessage.Text;
+                return message.Text;
             }
 
             /// <summary>Get the last state of the cursor position index</summary>
             public int CursorPos
             {
-                get { return prevMessage.CursorPos; }
+                get { return message.CursorPos; }
+            }
+
+            /// <summary>Enable automatic redudancy for fault tolerance</summary>
+            public bool Redundancy
+            {
+                get { return redundancy; }
+                set { redundancy = true; }
+            }
+
+            /// <summary>Force retransmission of the whole message in next RTT element</summary>
+            public bool ForceRetransmit
+            {
+                get { return fullMessageTransmit; }
+                set { fullMessageTransmit = true; }
             }
 
             /// <summary>Get the status of the RTT encoder, if there is any rtt action elements to transmit</summary>
@@ -922,11 +942,18 @@ namespace RealJabber.RealTimeTextUtil
                 set { transmitInterval = value; }
             }
 
+            /// <summary>Redundancy period for real time text</summary>
+            public int RedundancyPeriod
+            {
+                get { return redundancyPeriod; }
+                set { redundancyPeriod = value; }
+            }
+
             /// <summary>Enabled/Disabled state of transmission of interval elements, for encoding of pauses between keypresses</summary>
             public bool DelaysEnabled
             {
-                get { return prevMessage.DelaysEnabled; }
-                set { prevMessage.DelaysEnabled = value; }
+                get { return message.DelaysEnabled; }
+                set { message.DelaysEnabled = value; }
             }
         }
     }

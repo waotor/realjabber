@@ -1,7 +1,8 @@
 using System;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Reflection;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -53,12 +54,12 @@ namespace RealJabber
         // May need to use "jabberClient1.NetworkHost = talk.l.google.com"; // If using Mono on Linux/Mac etc.
         const string DEFAULT_SERVER = "talk.l.google.com";
         static ManualResetEvent done = new ManualResetEvent(false);
-        
+
         RosterManager rosterMgr;
         PresenceManager presenceMgr;
-        Hashtable chatInRoster = new Hashtable();
-        Hashtable chatNicknames = new Hashtable();
-        Hashtable chatForms = new Hashtable();
+        Dictionary<string, bool> chatInRoster = new Dictionary<string, bool>();
+        Dictionary<string, string> chatNicknames = new Dictionary<string, string>();
+        Dictionary<string, FrmChat> chatForms = new Dictionary<string, FrmChat>();
 
         /// <summary>Constructor</summary>
         public FrmMain()
@@ -78,13 +79,13 @@ namespace RealJabber
         {
             txtUserName.Text = "";
             cbServer.Text = DEFAULT_SERVER;
-            richTextBox1.SelectAll();
-            richTextBox1.SelectionAlignment = HorizontalAlignment.Center;
-            richTextBox1.SelectionLength = 0;
+            richTextBoxAbout.SelectAll();
+            richTextBoxAbout.SelectionAlignment = HorizontalAlignment.Center;
+            richTextBoxAbout.SelectionLength = 0;
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyName assemblyName = assembly.GetName();
-            lblLine4.Text = "Version " + assemblyName.Version.ToString();
+            lblVersion.Text = "Version " + assemblyName.Version.ToString();
 #if DEBUG
             txtUserName.Text = "mr.devtest@gmail.com";
             txtPassword.Text = "";
@@ -126,6 +127,8 @@ namespace RealJabber
             rosterMgr.OnRosterBegin += new bedrock.ObjectHandler(RosterMgr_OnRosterBegin);
             rosterMgr.OnRosterEnd += new bedrock.ObjectHandler(RosterMgr_OnRosterEnd);
             rosterMgr.OnRosterItem += new RosterItemHandler(RosterMgr_OnRosterItem);
+            rosterMgr.OnSubscription += new SubscriptionHandler(rosterMgr_OnSubscription);
+            rosterMgr.OnUnsubscription += new UnsubscriptionHandler(rosterMgr_OnUnsubscription);
 
             presenceMgr = new PresenceManager();
             presenceMgr.Stream = jabberClient;
@@ -136,6 +139,14 @@ namespace RealJabber
 
             lblUser.Text = jabberClient.User;
             jabberClient.Connect();
+        }
+
+        void rosterMgr_OnUnsubscription(RosterManager manager, jabber.protocol.client.Presence pres, ref bool remove)
+        {
+        }
+
+        void rosterMgr_OnSubscription(RosterManager manager, Item ri, jabber.protocol.client.Presence pres)
+        {
         }
 
         /// <summary>Hitting Enter after entering password, triggers the signin button</summary>
@@ -196,7 +207,7 @@ namespace RealJabber
         /// <summary>Called before display of buddy list</summary>
         void RosterMgr_OnRosterBegin(object sender)
         {
-            chatNicknames = new Hashtable();
+            chatNicknames = new Dictionary<string, string>();
             rosterTree.BeginUpdate();
         }
 
@@ -230,11 +241,7 @@ namespace RealJabber
             {
                 string bareJID = selectedNode.JID.Bare;
                 string nickName = !String.IsNullOrEmpty(selectedNode.Nickname) ? selectedNode.Nickname : bareJID;
-                FrmChat chatWindow = chatForms[bareJID] as FrmChat;
-                if ((chatWindow == null) || (chatWindow.Visible == false))
-                {
-                    chatWindow = InitializeChatWindow(selectedNode.JID, nickName);
-                }
+                FrmChat chatWindow = InitializeChatWindow(selectedNode.JID, nickName);
                 chatWindow.Show();
                 chatWindow.BringToFront();
             }
@@ -245,28 +252,42 @@ namespace RealJabber
 
         private void jabberClient_OnMessage(object sender, jabber.protocol.client.Message msg)
         {
+            // Handle messages on the same thread as UI.
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new MessageHandler(jabberClient_OnMessage), sender, msg);
+            }
+
             bool newWindow = false;
             string bareJID = msg.From.Bare;
-            string nickName = chatNicknames[bareJID] as string;
+            string nickName = null;
+            if (chatNicknames.ContainsKey(bareJID)) nickName = chatNicknames[bareJID];
 
             // Do we already have a chat window for this message?
-            FrmChat chatWindow = chatForms[bareJID] as FrmChat;
 
-            if (chatWindow == null)
+            FrmChat chatWindow = InitializeChatWindow(msg.From, nickName);
+            if (msg.Body != null)
             {
-                // Create chat window only when receiving first full-line message.
-                if (msg.Body != null)
+                if (!chatWindow.Visible)
                 {
-                    chatWindow = InitializeChatWindow(msg.From, nickName);
+                    // Show chat window only when receiving first full-line message.
                     newWindow = true;
+                    chatWindow.Show();
+                    chatWindow.BringToFront();
+                    chatWindow.WindowState = FormWindowState.Normal;
+                    chatWindow.Flash();
                 }
+                else if (chatWindow.WindowState == FormWindowState.Minimized)
+                {
+                    // Flash chat window in taskbar, if minimized
+                    chatWindow.Flash();
+                }
+                chatWindow.ReceiveFlag = true;
             }
 
             // Show window and handle chat message
-            if (chatWindow != null)
+            if (chatWindow.Visible)
             {
-                chatWindow.Show();
-                chatWindow.ReceiveFlag = true;
                 chatWindow.HandleMessage(msg);
             }
 
@@ -284,19 +305,42 @@ namespace RealJabber
         //#############################################################################################################
         // Chat window creation
 
+        /// <summary>Gets the active chat window for a JID</summary>
+        /// <param name="bareJID">JID of chat</param>
+        /// <returns>FrmChat if chat exists, null otherwise</returns>
+        private FrmChat ActiveChatWindow(JID jid)
+        {
+            if (chatForms.ContainsKey(jid.Bare))
+            {
+                FrmChat chatWindow = chatForms[jid.Bare];
+                if ((chatWindow != null) &&
+                    (chatWindow.Enabled != false) &&
+                    !chatWindow.IsDisposed)
+                {
+                    return chatWindow;
+                }
+            }
+            return null;
+        }
+
         /// <summary>Initializes a new chat window, and adds it to the hashtable of chat windows</summary>
         /// <param name="jid">JID of recipient</param>
         /// <param name="nickName">nickname of recipient</param>
         /// <returns>FrmChat object of new chat window</returns>
         private FrmChat InitializeChatWindow(jabber.JID jid, string nickName)
         {
-            FrmChat chatWindow = new FrmChat();
-            chatWindow.JabberObject = jabberClient;
-            chatWindow.JID = jid;
-            chatWindow.Nickname = (nickName != null) ? nickName : jid.User;
-            chatWindow.Text = chatWindow.Nickname;
-            chatWindow.JabberObject.OnMessage += new MessageHandler(chatWindow._jabberClient_OnMessage);
-            chatForms[jid.Bare] = chatWindow;
+            // Attempt to use existing chat window
+            FrmChat chatWindow = ActiveChatWindow(jid);
+            if (chatWindow == null)
+            {
+                // Create new chat window
+                chatWindow = new FrmChat();
+                chatWindow.JabberObject = jabberClient;
+                chatWindow.JID = jid;
+                chatWindow.Nickname = (nickName != null) ? nickName : jid.User;
+                chatWindow.Text = chatWindow.Nickname;
+                chatForms[jid.Bare] = chatWindow;
+            }
             return chatWindow;
         }
 
@@ -348,7 +392,7 @@ namespace RealJabber
         }
 
         //#############################################################################################################
-        // Shutdown
+        // Click events
 
         /// <summary>Signout button: Closes all chat windows and signs out of the XMPP server</summary>
         private void btnSignOut_Click(object sender, EventArgs e)
@@ -371,6 +415,38 @@ namespace RealJabber
         private void richTextBox1_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             Process.Start(e.LinkText);           
+        }
+
+        /// <summary>Add a buddy to chat</summary>
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            FrmAdd addDialog = new FrmAdd();
+            if (addDialog.ShowDialog() == DialogResult.OK)
+            {
+                jabberClient.Subscribe(addDialog.AddJID, addDialog.AddJID, null);
+                MessageBox.Show("User has been added:\n" + addDialog.AddJID);
+            }
+        }
+
+        /// <summary>Deletes a buddy from chat</summary>
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            muzzle.RosterTree.ItemNode selectedNode = rosterTree.SelectedNode as muzzle.RosterTree.ItemNode;
+            if (selectedNode != null)
+            {
+                string bareJID = selectedNode.JID.Bare;
+                string nickName = !String.IsNullOrEmpty(selectedNode.Nickname) ? selectedNode.Nickname : bareJID;
+                DialogResult result;
+                result = MessageBox.Show("Are you sure you want to remove '" + nickName + "'?",
+                    "Delete '" + nickName + "'",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Exclamation,
+                    MessageBoxDefaultButton.Button2);
+                if (result == DialogResult.Yes)
+                {
+                    jabberClient.RemoveRosterItem(bareJID);
+                }
+            }
         }
     }
 }

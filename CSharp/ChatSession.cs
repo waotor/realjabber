@@ -174,16 +174,16 @@ namespace RealJabber
         public void FormatAllRealTimeRTF(RichTextBox rtf, string formatString, string specificUser, char cursorChar, Color rttTextColor)
         {
             string line;
-            foreach (RealTimeMessage rttLine in chatRealTime.Values)
+            foreach (RealTimeMessage rttMsg in chatRealTime.Values)
             {
-                if ((specificUser == null) || (specificUser == rttLine.JID.Bare))
+                if ((specificUser == null) || (specificUser == rttMsg.JID.Bare))
                 {
-                    line = rttLine.Decoder.Text;
+                    line = rttMsg.Decoder.Text;
                     if (cursorChar != 0)
                     {
-                        line = line.Insert(rttLine.Decoder.CursorPos, cursorChar.ToString());
+                        line = line.Insert(rttMsg.Decoder.CursorPos, cursorChar.ToString());
                     }
-                    AddFormattedChatLine(rtf, formatString, rttLine.JID.Bare, line, rttLine.Color, rttTextColor);
+                    AddFormattedChatLine(rtf, formatString, rttMsg.JID.Bare, line, rttMsg.Color, rttTextColor);
                 }
             }
         }
