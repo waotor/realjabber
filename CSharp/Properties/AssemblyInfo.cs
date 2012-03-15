@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rejhon Technologies Inc.")]
 [assembly: AssemblyProduct("RealJabber")]
-[assembly: AssemblyCopyright("Copyright © Mark Rejhon 2011")]
+[assembly: AssemblyCopyright("Copyright © Mark Rejhon 2012. (Open Source Licensed under Apache 2.0)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.2.0.100")]
-[assembly: AssemblyFileVersion("0.2.0.100")]
+[assembly: AssemblyVersion("0.4.0.160")]
+[assembly: AssemblyFileVersion("0.4.0.160")]

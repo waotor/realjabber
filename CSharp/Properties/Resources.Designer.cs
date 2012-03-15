@@ -60,17 +60,10 @@ namespace RealJabber.Properties {
             }
         }
         
-        internal static System.Drawing.Bitmap GoogleLogo {
+        internal static System.Drawing.Icon fasttext {
             get {
-                object obj = ResourceManager.GetObject("GoogleLogo", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap GoogleLogo2 {
-            get {
-                object obj = ResourceManager.GetObject("GoogleLogo2", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("fasttext", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
@@ -80,9 +73,16 @@ namespace RealJabber.Properties {
             }
         }
         
-        internal static System.Drawing.Bitmap xmpp {
+        internal static System.Drawing.Icon xmpp {
             get {
                 object obj = ResourceManager.GetObject("xmpp", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap xmpp_png {
+            get {
+                object obj = ResourceManager.GetObject("xmpp_png", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
