@@ -9,7 +9,7 @@ namespace RealJabber.RealTimeTextUtil
     /// <summary>
     /// HELPER UTILITY CLASS FOR:
     ///   XMPP EXTENSION: http://www.xmpp.org/extensions/xep-0301.html
-    ///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.0.4 - http://www.realjabber.org
+    ///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.2 - http://www.realjabber.org
     ///    
     ///         LANGUAGE: C# .NET
     ///       XML PARSER: System.Xml (part of .NET)
@@ -45,7 +45,7 @@ namespace RealJabber.RealTimeTextUtil
         // Specification constants
         public const string ROOT = "rtt";
         public const string NAMESPACE = "urn:xmpp:rtt:0";
-        public const string VERSION = "0.0.4";
+        public const string VERSION = "0.2";
 
         /// <summary>The default recommended transmission for transmission of real time text</summary>
         public const int DEFAULT_INTERVAL = 1000;
@@ -378,7 +378,7 @@ namespace RealJabber.RealTimeTextUtil
                 AppendElement.Insert(rtt, insertedText, curPos, before.Text.Length);
                 curPos += charsInserted;
 
-                // Execute a <c> CURSOR POSITION operation to move cursor to final location, if last action element didn't put cursor there.
+                // Execute a CURSOR POSITION operation to move cursor to final location, only if last action element didn't already put cursor there.
                 if (curPos != after.CursorPos)
                 {
                     AppendElement.CursorPosition(rtt, after.CursorPos);
@@ -426,13 +426,14 @@ namespace RealJabber.RealTimeTextUtil
         // ################################################################################################################
 
         /// <summary>Class to calculate very accurate delay intervals, used for recording delays between actions
-        /// (such as the pauses between key presses) for encoding & decoding of the 'w' action element during 
+        /// (such as the pauses between key presses) for encoding and decoding of the 'w' action element during 
         /// real time text communications.  Delay interval values are calculated using an accumulated delay total
-        /// since the beginning of an &lt;rtt&rt; element.  This calculation is much more accurate than simply
+        /// since the beginning of an &lt;rtt&gt; element.  This calculation is much more accurate than simply
         /// trying to directly measure the time between actions, and more immune to system/performance variances.
         /// Timers and other methods of delay calculations, are more prone to software/CPU performance variations.
-        /// The calculations in this class is immune to system & software performance variations AND is also 
+        /// The calculations in this class is immune to system, and software performance variations AND is also 
         /// immune to accumulated rounding errors.</summary>
+        /// <remarks>NOTE: This ultra-precision is NOT REQUIRED for XEP-0301. It is just done to maximize quality.</remarks>
         public class DelayCalculator
         {
             // NOTE: Stopwatch object is apparently more accurate under older Windows XP than DateTime.Now.Ticks and System.Environment.TickCount!
@@ -507,18 +508,21 @@ namespace RealJabber.RealTimeTextUtil
             private bool activated = false;
             private uint seq = 0;
 
+            public delegate void TextUpdatedHandler(Decoder decoder);
+            public delegate void SyncStateChangedHandler(Decoder decoder, bool isInSync);
+            public delegate void ActivationChangedHandler(Decoder decoder, bool isActivated);
+
             /// <summary>Callback event for asynchronous RTT decoding (This mainly used for Natural Typing mode)</summary>
             public event TextUpdatedHandler TextUpdated = null;
-            public delegate void TextUpdatedHandler(Decoder decoder);
-
-            /// <summary>Callback event that is called everytime sync state changes (loss of sync, caused by missing or out-of-order rtt packets)</summary>
+            /// <summary>Callback event that is called everytime sync state changes (loss of sync)</summary>
             public event SyncStateChangedHandler SyncStateChanged = null;
-            public delegate void SyncStateChangedHandler(Decoder decoder, bool isInSync);
+             /// <summary>Callback event that is called everytime real-time text is activated or deactivated</summary>
+            public event ActivationChangedHandler ActivationChanged = null;
 
             Thread decodeThread;
             private bool enableThread = false;
             private AutoResetEvent rttElementEvent = new AutoResetEvent(false);
-            private const int IDLE_THREAD_QUIT_INTERVAL = 2000;
+            private const int IDLE_THREAD_QUIT_INTERVAL = 3000;
 
             /// <summary>Constructor</summary>
             /// <param name="setUser">XMPP user for this Real Time Text (RTT) decoder</param>
@@ -653,6 +657,8 @@ namespace RealJabber.RealTimeTextUtil
 
                 lock (rttElementQueue)
                 {
+                    bool oldSync = sync;
+                    bool oldActivated = activated;
                     try
                     {
                         XmlAttribute eventAttr = rttNew.Attributes["event"];
@@ -674,12 +680,8 @@ namespace RealJabber.RealTimeTextUtil
                                     activated = true;
                                     seq = seqNewValue;
                                     rttElementQueue.Add(rttNew);
-                                    if (SyncStateChanged != null) SyncStateChanged(this, true);
                                     break;
-                                case "start":
-                                    activated = true;
-                                    break;
-                                case "stop":
+                                case "cancel":
                                     activated = false;
                                     break;
                                 default:
@@ -707,12 +709,20 @@ namespace RealJabber.RealTimeTextUtil
                         sync = false;
                     }
 
-                    if (!sync)
+                    // If the activation state changed (incoming <rtt> being started or being stopped), notify our event.
+                    if (activated != oldActivated)
                     {
-                        // If we're no longer in sync, then inform this object's owner
-                        if (SyncStateChanged != null) SyncStateChanged(this, false);
+                        if (ActivationChanged != null) ActivationChanged(this, activated);
                     }
-                    TriggerDecodeThread();
+
+                    // If the sync state changed (we lose sync with real time text), notify our event.
+                    if (sync != oldSync)
+                    {
+                        if (SyncStateChanged != null) SyncStateChanged(this, sync);
+                    }
+
+                    // Start/resume the decoder thread if we've got RTT elements to decode
+                    if (rttElementQueue.Count > 0) TriggerDecodeThread();
                 }
                 return sync;
             }
@@ -778,6 +788,7 @@ namespace RealJabber.RealTimeTextUtil
             private XmlElement rtt;
             private bool newMsg = true;
             private UInt32 seq = 0;
+            private Random random = new Random();
 
             // Transmit interval variables
             private DelayCalculator delayCalculator = new DelayCalculator();
@@ -820,8 +831,6 @@ namespace RealJabber.RealTimeTextUtil
             {
                 XmlElement rttEncoded = rtt;
                 rttEncoded.SetAttribute("xmlns", RealTimeText.NAMESPACE);
-                rttEncoded.SetAttribute("seq", seq.ToString());
-                seq++;
 
                 if (newMsg)
                 {
@@ -829,6 +838,7 @@ namespace RealJabber.RealTimeTextUtil
                     // (i.e. This rtt element contains the first character(s) typed)
                     rttEncoded.SetAttribute("event", "new");
                     newMsg = false;
+                    seq = (uint)random.Next(1 << 20);
                     if (redundancy)
                     {
                         redundancyClock.Reset();
@@ -861,6 +871,9 @@ namespace RealJabber.RealTimeTextUtil
                         rtt.PrependChild(resetText);
                     }
                 }
+                rttEncoded.SetAttribute("seq", seq.ToString());
+                seq++;
+                
                 fullMessageTransmit = false;
                 messagePrevious = message.Clone();
 
@@ -933,6 +946,12 @@ namespace RealJabber.RealTimeTextUtil
             public bool IsEmpty
             {
                 get { return !rtt.HasChildNodes; }
+            }
+
+            /// <summary>Returns true if this is a new message.</summary>
+            public bool IsNew
+            {
+                get { return newMsg; }
             }
 
             /// <summary>Transmission interval of real time text</summary>

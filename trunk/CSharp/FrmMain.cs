@@ -8,15 +8,17 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using jabber.client;
 using System.Threading;
 using System.Diagnostics;
-using jabber.protocol.iq;
 using jabber;
+using jabber.protocol;
+using jabber.protocol.iq;
+using jabber.protocol.client;
+using jabber.connection;
 using Google.GData.Contacts;
 using Google.GData.Extensions;
-using jabber.protocol;
-
 
 namespace RealJabber
 {
@@ -50,13 +52,17 @@ namespace RealJabber
     /// </summary>
     public partial class FrmMain : Form
     {
-        // Recommended, see http://code.google.com/p/jabber-net/wiki/FAQ_GoogleTalk
-        // May need to use "jabberClient1.NetworkHost = talk.l.google.com"; // If using Mono on Linux/Mac etc.
+        // Documents:
+        //   http://code.google.com/p/jabber-net/source/browse/trunk/Example/MainForm.cs
+        //   http://code.google.com/p/jabber-net/wiki/FAQ_GoogleTalk
+        
         const string DEFAULT_SERVER = "talk.l.google.com";
         static ManualResetEvent done = new ManualResetEvent(false);
 
         RosterManager rosterMgr;
         PresenceManager presenceMgr;
+        CapsManager capsMgr;
+        DiscoManager discoMgr;
         Dictionary<string, bool> chatInRoster = new Dictionary<string, bool>();
         Dictionary<string, string> chatNicknames = new Dictionary<string, string>();
         Dictionary<string, FrmChat> chatForms = new Dictionary<string, FrmChat>();
@@ -86,12 +92,12 @@ namespace RealJabber
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyName assemblyName = assembly.GetName();
             lblVersion.Text = "Version " + assemblyName.Version.ToString();
-#if DEBUG
-            txtUserName.Text = "mr.devtest@gmail.com";
+
             txtPassword.Text = "";
-            //btnSignin_Click(this, EventArgs.Empty);
-#endif
+            txtUserName.Text = "@gmail.com";
             txtUserName.Focus();
+            txtUserName.SelectionStart = 0;
+            txtUserName.SelectionLength = 0;
         }
 
         /// <summary>Signin button</summary>
@@ -119,6 +125,9 @@ namespace RealJabber
             jabberClient.Resource = "realjabber";
             //jabberClient.PlaintextAuth = true;
             jabberClient.OnAuthenticate += new bedrock.ObjectHandler(jabberClient_OnAuthenticate);
+            jabberClient.OnInvalidCertificate += new System.Net.Security.RemoteCertificateValidationCallback(jabberClient_OnInvalidCertificate);
+            jabberClient.AddNamespace("rtt", RealTimeTextUtil.RealTimeText.NAMESPACE);
+            jabberClient.OnIQ += new IQHandler(jabberClient_OnIQ);
 
             rosterMgr = new RosterManager();
             rosterMgr.Stream = jabberClient;
@@ -130,8 +139,18 @@ namespace RealJabber
             rosterMgr.OnSubscription += new SubscriptionHandler(rosterMgr_OnSubscription);
             rosterMgr.OnUnsubscription += new UnsubscriptionHandler(rosterMgr_OnUnsubscription);
 
+            discoMgr = new DiscoManager();
+            discoMgr.Stream = jabberClient;
+
+            capsMgr = new CapsManager();
+            capsMgr.DiscoManager = discoMgr;
+            capsMgr.AddFeature(RealTimeTextUtil.RealTimeText.NAMESPACE);
+            capsMgr.Node = RealTimeTextUtil.RealTimeText.NAMESPACE;
+            capsMgr.Stream = jabberClient;
+
             presenceMgr = new PresenceManager();
             presenceMgr.Stream = jabberClient;
+            presenceMgr.CapsManager = capsMgr;
 
             rosterTree.RosterManager = rosterMgr;
             rosterTree.PresenceManager = presenceMgr;
@@ -141,12 +160,38 @@ namespace RealJabber
             jabberClient.Connect();
         }
 
+        void jabberClient_OnIQ(object sender, jabber.protocol.client.IQ iq)
+        {
+            if (iq.Type != IQType.get)
+                return;
+
+            XmlElement query = iq.Query;
+            if (query == null)
+                return;
+
+            // Detect and respond to RTT feature disco here. 
+            // For more info, see http://code.google.com/p/jabber-net/source/browse/trunk/Example/MainForm.cs
+        }
+
+        bool jabberClient_OnInvalidCertificate(object sender, 
+            System.Security.Cryptography.X509Certificates.X509Certificate certificate, 
+            System.Security.Cryptography.X509Certificates.X509Chain chain, 
+            System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        {
+            // This was needed to make chat working for "Google For Domains" systems.
+            // See http://code.google.com/p/jabber-net/wiki/FAQ_GoogleTalk
+            // FIXME: Find a better way.
+            return true;
+        }
+
         void rosterMgr_OnUnsubscription(RosterManager manager, jabber.protocol.client.Presence pres, ref bool remove)
         {
+            // Not presently used, since we currently use auto-subscription
         }
 
         void rosterMgr_OnSubscription(RosterManager manager, Item ri, jabber.protocol.client.Presence pres)
         {
+            // Not presently used, since we currently use auto-subscription
         }
 
         /// <summary>Hitting Enter after entering password, triggers the signin button</summary>

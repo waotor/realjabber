@@ -29,4 +29,7 @@ Mark Rejhon retains copyright to the use of the name "RealJabber".
 Modified versions of this software not released by Mark Rejhon must be released under a 
 different name than "RealJabber", but MUST give credit to RealJabber, i.e. by saying
  "This software has been derived from RealJabber source code at http://www.RealJabber.org"
+ 
+Some libraries (i.e. jabber-net) included with this application is licensed under LGPL.
+However, all the C# modules in RealJabber is Apache 2.0
 __________________________________________________________________________________________

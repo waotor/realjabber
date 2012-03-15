@@ -35,9 +35,9 @@ using RealJabber.RealTimeTextUtil;
 namespace RealJabber
 {
     /// <summary>Defines a single line of chat</summary>
-    public class ChatLine
+    public class ChatMessage
     {
-        public ChatLine(jabber.JID jidValue, string textValue, Color colorValue)
+        public ChatMessage(jabber.JID jidValue, string textValue, Color colorValue)
         {
             jid = jidValue;
             text = textValue;
@@ -62,7 +62,7 @@ namespace RealJabber
     }
 
     /// <summary>Defines a single line of real time text</summary>
-    public class RealTimeMessage : ChatLine
+    public class RealTimeMessage : ChatMessage
     {
         public RealTimeMessage(string fullJidValue, Color colorValue) : base(fullJidValue, "", colorValue)
         {
@@ -82,7 +82,7 @@ namespace RealJabber
     /// <summary>Class that stores the text content of a chat session</summary>
     public class ChatSession
     {
-        private ArrayList chatLines = new ArrayList();
+        private List<ChatMessage> chatMessages = new List<ChatMessage>();
         private Hashtable chatRealTime = new Hashtable();
         private Font fontChatUser = new Font("Arial Unicode MS", 10, FontStyle.Bold); // Default font
         private Font fontChatText = new Font("Arial Unicode MS", 10); // Default font
@@ -102,9 +102,9 @@ namespace RealJabber
         }
 
         /// <summary>Return the conversation buffer</summary>
-        public ArrayList Lines 
+        public List<ChatMessage> History 
         {
-            get { return chatLines; }
+            get { return chatMessages; }
         }
 
         /// <summary>Font of chat user headings</summary>
@@ -141,7 +141,7 @@ namespace RealJabber
         /// <param name="user">Chat lines by specific user, or null for entire chat</param>
         public void FormatAllLinesRTF(RichTextBox rtf, string formatString, string user)
         {
-            foreach (ChatLine line in chatLines)
+            foreach (ChatMessage line in chatMessages)
             {
                 if ((user == null) || (user == line.JID.Bare))
                 {
@@ -157,7 +157,7 @@ namespace RealJabber
         public string FormatAllLines(string formatString, string user)
         {
             string chatText = "";
-            foreach (ChatLine line in chatLines)
+            foreach (ChatMessage line in chatMessages)
             {
                 if ((user == null) || (user == line.JID.Bare))
                 {
@@ -224,7 +224,7 @@ namespace RealJabber
         /// <summary>Clears the chat session</summary>
         public void Clear()
         {
-            chatLines.Clear();
+            chatMessages.Clear();
             ClearRealTimeMessages();
         }
 

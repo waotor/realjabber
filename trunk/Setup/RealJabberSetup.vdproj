@@ -524,7 +524,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:RealJabber"
         "ProductCode" = "8:{52A24EE1-FF80-48AC-AAAC-F29D005DFA1E}"
-        "PackageCode" = "8:{321E1F7E-7612-4AC9-9B22-49ED4128508F}"
+        "PackageCode" = "8:{7A44B883-C6BE-424D-A657-A88560A4539C}"
         "UpgradeCode" = "8:{F25AE03B-5648-4CB2-810B-DE50D9B5F499}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -663,12 +663,12 @@
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
-            "IconIndex" = "3:0"
+            "IconIndex" = "3:32512"
             "Transitive" = "11:FALSE"
             "Target" = "8:_5DF76C50272D4D9980A71B89EE9BCACF"
             "Folder" = "8:_1AF21651267A48B1BD90D2C239101AFF"
             "WorkingFolder" = "8:_DF9D27AF475E4D87A371B08EBDA19E18"
-            "Icon" = "8:"
+            "Icon" = "8:_5DF76C50272D4D9980A71B89EE9BCACF"
             "Feature" = "8:"
             }
         }
