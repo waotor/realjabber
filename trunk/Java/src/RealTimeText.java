@@ -1,25 +1,40 @@
 import java.io.IOException;
 import java.util.Vector;
+import java.util.Random;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-// HELPER UTILITY CLASS FOR:
-///   XMPP EXTENSION: http://www.xmpp.org/extensions/xep-0301.html
-///      DESCRIPTION: XEP-0301 - In-Band Real Time Text - Version 0.0.3 - http://www.realjabber.org
-// 
-//          LANGUAGE: Java
-//        XML PARSER: xmlpull
-//      XMPP LIBRARY: No internal dependency (Recommended: smack for Java/JSP, asmack for Android)
-//            AUTHOR: Mark D. Rejhon - mailto:markybox@gmail.com - http://www.marky.com/resume
-//         COPYRIGHT: Copyright 2011 by Mark D. Rejhon - Rejhon Technologies Inc.
-//           LICENSE: Apache 2.0 - Open Source - Commercial usage is permitted.
+/** 
+ * XML-based Real-Time Text Encoding/Decoding Module (Java version)     <br>  
+ * Designed for XEP-0301 -- Jabber/XMPP Extension Protocol              <br>
+ * http://www.xmpp.org/extensions/xep-0301.html
+ * 
+ * @author Mark D. Rejhon - <a href="mailto:mark@realjabber.org">mark@realjabber.org</a> - <a href="http://www.realjabber.org">www.realjabber.org</a><br>
+ *          Extension: <a href="http://www.xmpp.org/extensions/xep-0301.html">www.xmpp.org/extensions/xep-0301.html</a><br>
+ *          Resume: <a href="http://www.marky.com/resume">www.marky.com/resume</a><br>
+ */
+// DESCRIPTION:
+//   -- Real-time text (RTT): Text transmitted instantly while it is being typed or created.
+//   The recipient can immediately read the sender's text as it is written, without waiting.
+//   -- Real-time text is used for general chat, improved text messaging, enhancement to instant messaging, 
+//   voice transcription, court reporting, streaming news tickers, IP relay services, live closed captioning 
+//   and live subtitles, gateways for TDD/TTY/text telephone for the deaf, captioned telephones, and more.<br> 
+//   -- Although this module is designed for use with XMPP via XEP-0301, this module can also 
+//   be used independently as general-purpose XML based encoder/decoder for any form of real-time text.
+//   This module is not dependant on any specific XMPP library, and can be used with any XMPP libary.
+//   -- For a FAQ, and for other versions of this module (C#, Java, etc) see http://www.realjabber.org
+//
+//       LANGUAGE: Java
+//     XML PARSER: xmlpull
+//   XMPP LIBRARY: No internal dependency (Recommended: smack for Java/JSP, asmack for Android)
+//         AUTHOR: Mark D. Rejhon - mailto:mark@realjabber.org - http://www.realjabber.org
+//      COPYRIGHT: Copyright 2012 by Mark D. Rejhon - http://www.marky.com/resume
+//        LICENSE: Apache 2.0 - Open Source - Commercial usage is permitted.
 //
 // LICENSE
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
+//   You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
 //
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,47 +51,34 @@ import org.xmlpull.v1.XmlPullParserException;
 // TABLE OF SUPPORTED ACTION ELEMENTS
 //   For more information, please see http://www.realjabber.org
 //   ----------------------------------------------------------
-//   TIER ACTION           CODE               DESCRIPTION
-//     1  Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes)
-//     1  Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-//     1  Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
-//     2  Delay            <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
-//     2  Cursor Position  <c p='#'/>         (OPTIONAL) Move cursor to position p in message. (Remote Cursor)
-//     2  Beep             <g/>               (OPTIONAL) Executes a flash/beep/buzz. Deaf-friendly feature.
-
-/**
- * Central helper classes for real time text processing for XMPP instant
- * messaging.<br>
- * XMPP In-Band Real Time Text Extension - <a
- * href="http://www.realjabber.org">www.realjabber.org</a>
- * 
- * @author Mark Rejhon<br>
- *         <a href="mailto:markybox@gmail.com">markybox@gmail.com</a><br>
- *         <a href="http://www.marky.com/resume">www.marky.com/resume</a><br>
- */
+//   ACTION           CODE               DESCRIPTION
+//   Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
+//   Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+//   Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
+//   Interval         <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
+//
 public class RealTimeText {
 	// Specification constants
 	public static final String ROOT = "rtt";
 	public static final String NAMESPACE = "urn:xmpp:rtt:0";
-	public static final String VERSION = "0.0.3";
+	public static final String VERSION = "0.3";
 
-	/**
-	 * @summary The default recommended transmission for transmission of real
-	 *          time text
-	 */
-	public static final int INTERVAL_DEFAULT = 1000;
+    /** @summary The default recommended transmission interval (in milliseconds) for real time text */
+    public static final int DEFAULT_TRANSMIT_INTERVAL = 700;
 
-	/** @summary Class representing the state of a real time message */
-	public static final boolean TEST_RTT_CODEC = false;
+    /** @summary The default recommended redundancy interval (in milliseconds) for error recovery */
+    public static final int DEFAULT_REDUNDANCY_INTERVAL = 10000;
 
+    /** @summary Debug: Displays XML of RTT elements to console */
+    public static final boolean DEBUG_CONSOLE_XML = true;
+    
 	// ---------------------------------------------------------------------------------------------
 	/** Class representing the state of a real time message */
 	static public class Message implements Cloneable {
 		private String text = "";
 		private int pos = 0;
-		private int delay = 0;
-		private boolean beeped = false;
-		private boolean delaysEnabled = false;
+		private int currentKeyInterval = 0;
+		private boolean enableKeyIntervals = false;
 
         /** Main constructor */
         public Message() {}
@@ -92,8 +94,7 @@ public class RealTimeText {
 		public void reset() {
 			text = "";
 			pos = 0;
-			delay = 0;
-			beeped = false;
+			currentKeyInterval = 0;
 		}
 
 		/** Copy real time message */
@@ -101,62 +102,51 @@ public class RealTimeText {
 			return (Message) this.clone();
 		}
 
-		/** getter for message text */
+		/** get message text */
 		public String getText() {
 			return text;
 		}
 
-		/** setter for message text */
+		/** set message text */
 		public void setText(String textValue) {
 			text = textValue;
 		}
 
-		/** getter for cursor position index */
+		/** get optional cursor position index */
 		public int getCursorPos() {
 			return pos;
 		}
 
-		/** setter for cursor position index */
+		/** set optional cursor position index */
 		public void setCursorPos(int posValue) {
 			pos = posValue;
 		}
 
-		/** getter for flash/beep status flag */
-		public boolean getBeeped() {
-			return beeped;
+		/** get current key interval values (the "W" action element) */
+		public int getCurrentKeyInterval() {
+			return currentKeyInterval;
 		}
 
-		/** setter for flash/beep status flag */
-		public void setBeeped(boolean beepedValue) {
-			beeped = beepedValue;
+		/** set current key interval values (the "W" action element) */
+		public void setCurrentKeyInterval(int value) {
+			currentKeyInterval = value;
 		}
 
-		/** getter to enable/disable processing of delay action elements */
-		public boolean getDelaysEnabled() {
-			return delaysEnabled;
+		/** get enable/disable processing of key press interval action elements */
+		public boolean getKeyIntervalsEnabled() {
+			return enableKeyIntervals;
 		}
 
-		/** setter to enable/disable processing of delay action elements */
-		public void setDelaysEnabled(boolean value) {
-			delaysEnabled = value;
-		}
-
-		/** getter for Delay value */
-		public int getDelay() {
-			return delay;
-		}
-
-		/** setter for Delay value */
-		public void setDelay(int value) {
-			delay = value;
-		}
+		/** set enable/disable processing of key press interval action elements */
+		public void setKeyIntervalsEnabled(boolean value) {
+			enableKeyIntervals = value;
+		}		
 	}
 
 	// ---------------------------------------------------------------------------------------------
 	/** Class representing one action element */
 	static public class ActionElement {
-		private String element = null; // Should be one of the supported action
-										// elements
+		private String element = null; // Should be one of the supported action elements
 		private Integer p = null; // Position value
 		private Integer n = null; // Count value
 		private String text = null; // Valid only for the 't' element.
@@ -212,14 +202,11 @@ public class RealTimeText {
 
 		/** Outputs this action element class into raw XML text */
 		public String toXml() {
-			if (element == null)
-				throw new NullPointerException();
+			if (element == null) throw new NullPointerException();
 
 			StringBuilder rawXml = new StringBuilder("<" + element);
-			if (p != null)
-				rawXml.append(" p='" + p.toString() + "'");
-			if (n != null)
-				rawXml.append(" n='" + n.toString() + "'");
+			if (p != null) rawXml.append(" p='" + p.toString() + "'");
+			if (n != null) rawXml.append(" n='" + n.toString() + "'");
 			if ((text != null) && !text.isEmpty()) {
 				rawXml.append(">" + text + "</" + element + ">");
 			} else {
@@ -312,37 +299,37 @@ public class RealTimeText {
 		private int seq = 0;
 		private Vector<ActionElement> actions = new Vector<ActionElement>();
 
-		/** Getter for xmlns attribute */
+		/** Get xmlns attribute */
 		public String getXmlns() {
 			return xmlns;
 		}
 
-		/** Setter for xmlns attribute */
+		/** Set xmlns attribute */
 		public void setXmlns(String xmlnsValue) {
 			xmlns = xmlnsValue;
 		}
 
-		/** Getter for event attribute */
+		/** Get event attribute */
 		public String getEvent() {
 			return event;
 		}
 
-		/** Setter for event attribute */
+		/** Set event attribute */
 		public void setEvent(String eventValue) {
 			event = eventValue;
 		}
 
-		/** Getter for seq value */
+		/** Get seq value */
 		public int getSeq() {
 			return seq;
 		}
 
-		/** Setter for seq value */
+		/** Set seq value */
 		public void setSeq(int seqValue) {
 			seq = seqValue;
 		}
 
-		/** Getter for action elements vector */
+		/** Provide action elements vector */
 		public Vector<ActionElement> getActionElements() {
 			return actions;
 		}
@@ -442,18 +429,15 @@ public class RealTimeText {
 	/** Class to generate action elements */
 	static public class AppendElement {
 		/**
-		 * T Element - Insert/Append Text Inserts text at specified position, or
-		 * appends text to end of line
+		 * T Element - Insert/Append Text Inserts text at specified position, or appends text to end of line
 		 * 
 		 * @param text Text to insert
 		 * @param pos Position to insert text at
-		 * @param len Length of original text to insert into (for automatic
-		 *            omission of 'pos' if at end of string)
+		 * @param len Length of original text to insert into (for automatic omission of 'pos' if at end of string)
 		 * @return Action element represented
 		 */
-		public static void Insert(Vector<ActionElement> actions, String text, int pos, int len) {
-			if ((text == null) || text.isEmpty())
-				return;
+		public static void insert(Vector<ActionElement> actions, String text, int pos, int len) {
+			if ((text == null) || text.isEmpty()) return;
 
 			ActionElement action = new ActionElement("t");
 			if ((pos >= 0) && (pos < len)) {
@@ -464,15 +448,14 @@ public class RealTimeText {
 		}
 
 		/**
-		 * E Element - Backspace Erase # characters to left of specified position
+		 * E Element - Backspace Erase # characters before specified position
 		 * 
 		 * @param pos Position to begin backspacing at
 		 * @param count Count of characters to backspaces
 		 * @param len Length of original string
 		 * @return Action element represented
 		 */
-		public static void Backspace(Vector<ActionElement> actions, int pos,
-				int count, int len) {
+		public static void backspace(Vector<ActionElement> actions, int pos, int count, int len) {
 			if (count <= 0) return;
 
 			ActionElement action = new ActionElement("e");
@@ -486,17 +469,14 @@ public class RealTimeText {
 		}
 
 		/**
-		 * D Element Forward Delete - Delete # of characters to right of
-		 * specified position
+		 * D Element - Forward Delete - Delete # of characters beginning at specified position
 		 * 
 		 * @param pos Position to delete characters at
 		 * @param count Count of characters to delete
 		 * @return Action element represented
 		 */
-		public static void ForwardDelete(Vector<ActionElement> actions,
-				int pos, int count) {
-			if (count <= 0)
-				return;
+		public static void forwardDelete(Vector<ActionElement> actions, int pos, int count) {
+			if (count <= 0) return;
 
 			ActionElement action = new ActionElement("d");
 			if (count != 1) {
@@ -507,49 +487,37 @@ public class RealTimeText {
 		}
 
 		/**
-		 * C Element - Cursor Position Set cursor position to specified index
+		 * W Element - Interval - Pause specified amount (i.e. intervals between key presses)
 		 * 
-		 * @param pos
-		 *            New cursor position index
+		 * @param milliseconds Number of thousandths of seconds to delay
 		 * @return Action element represented
 		 */
-		public static void CursorPosition(Vector<ActionElement> actions, int pos) {
-			ActionElement action = new ActionElement("c");
+		public static void interval(Vector<ActionElement> actions, int milliseconds) {
+			ActionElement action = new ActionElement("w");
+			action.setCount(milliseconds);
+			actions.add(action);
+		}
+
+		/**
+		 * Optional Cursor Position using an empty T element (Insert Text) using the 'p' attribute.
+		 * 
+		 * @param pos New cursor position index
+		 * @return Action element represented
+		 */
+		public static void cursorPosition(Vector<ActionElement> actions, int pos) {
+			ActionElement action = new ActionElement("t");
 			action.setPosition(pos);
 			actions.add(action);
-		}
-
-		/**
-		 * W Element - Delay Pause specified amount for a delay between actions
-		 * (including keypresses)
-		 * 
-		 * @param centiSecs
-		 *            Number of hundredth of seconds to delay
-		 * @return Action element represented
-		 */
-		public static void Delay(Vector<ActionElement> actions, int centiSecs) {
-			ActionElement action = new ActionElement("w");
-			action.setCount(centiSecs);
-			actions.add(action);
-		}
-
-		/**
-		 * G Element - Flash Brief visual flash/buzz/beep
-		 * 
-		 * @return Action element represented
-		 */
-		public static void Flash(Vector<ActionElement> actions) {
-			actions.add(new ActionElement("g"));
-		}
+		}		
 	}
 
 	/**
-	 * Decode Action Elements on a string of text. This follows the XEP-0301 Real Time Text spec.
+	 * Decode Action Elements into a message string.
 	 * 
-	 * @param rtt The root rtt element containing Action Elements
+	 * @param rtt The rtt element containing Action Elements
 	 * @param message Real time message to update
 	 * @return New text of message <br>
-	 *         (message is updated, processed elements are removed from rtt)
+	 *         ('message' is updated, processed elements are removed from 'rtt')
 	 */
 	static public String DecodeRawRTT(RootElement rtt, Message message) {
 		String text = message.text;
@@ -557,6 +525,8 @@ public class RealTimeText {
 		int pos;
 		boolean quit = false;
 		ActionElement action;
+		
+		message.setCurrentKeyInterval(0);
 
 		// Verify rtt element is defined
 		if (rtt == null) return message.text;
@@ -581,9 +551,12 @@ public class RealTimeText {
 				switch (action.element.charAt(0)) {
 				// --------------------------------------------------------------------
 				case 't': // Insert action element: <t p="#">text</i>
-					message.pos = pos;
-					text = text.substring(0, message.pos) + action.text + text.substring(message.pos);
-					message.pos = message.pos + action.text.length();
+					message.pos = pos;  // Reposition cursor even if <t> is empty.
+					if ((action.text != null) && !action.text.isEmpty())
+					{
+						text = text.substring(0, message.pos) + action.text + text.substring(message.pos);
+						message.pos = message.pos + action.text.length();
+					}
 					break;
 				// --------------------------------------------------------------------
 				case 'e': // Backspace action element: <e p="#" n="#"/>
@@ -599,23 +572,13 @@ public class RealTimeText {
 					text = text.substring(0, message.pos) + text.substring(message.pos + count);
 					break;
 				// --------------------------------------------------------------------
-				case 'c': // Cursor Position action element: <c p="#"/>
-					message.pos = pos;
-					break;
-				// --------------------------------------------------------------------
 				case 'w': // Delay code <w n="#"/>
-					if (message.delaysEnabled) {
-						message.delay = count;
+					if (message.enableKeyIntervals) {
+						message.currentKeyInterval = count;
 						quit = true;
-						// We exit the loop so that the caller can decide to use
-						// a timer for the delay code,
-						// and come back to this loop later to finish remaining
-						// nodes that have not finished processing.
+                        // We exit the loop so that the caller can decide to use a timer for the delay code,
+                        // and come back to this loop later to finish remaining nodes that have not finished processing.
 					}
-					break;
-				// --------------------------------------------------------------------
-				case 'g': // Flash action element: <g/>
-					message.beeped = true;
 					break;
 				}
 			} catch (Exception ex) {
@@ -633,27 +596,19 @@ public class RealTimeText {
 	 * @param rtt The rtt element
 	 * @param before Previous real time message
 	 * @param after Current real time message
-	 * @returns Efficiently encoded RTT fragment to send in XML "rtt" element to
-	 *          change "before" into "after"
+	 * @returns Efficiently encoded RTT fragment to send in XML "rtt" element to change "before" into "after"
 	 */
-	static public void EncodeRawRTT(RootElement rtt, Message before,
-			Message after) {
-		int curPos = before.getCursorPos();
+	static public void EncodeRawRTT(RootElement rtt, Message before, Message after) {		
 		if (after.pos < 0) after.pos = 0;
-		if (after.pos > after.text.length()) after.pos = after.text.length();
+		if (after.pos > after.text.length()) after.pos = after.text.length();		
 
-		if (before.getText().equals(after.getText())) {
-			// Handle cursor position change only.
-			if (before.pos != -1) {
-				if (before.pos != after.pos) {
-					AppendElement.CursorPosition(rtt.actions, after.pos);
-				}
-			}
-		} else if (after.text.isEmpty()) {
-			// The whole line got cleared.
-			AppendElement.Backspace(rtt.actions, before.text.length(), before.text.length(), before.text.length());
-			curPos = 0;
-		} else {
+		int curPos = before.pos;
+		boolean textChanged = !before.text.equals(after.text);
+		boolean posChanged = (before.pos != after.pos);
+		if (!textChanged && !posChanged) return;
+				
+	 	if (textChanged) {
+			// Before text and after text are different
 			int leadingSame = 0;
 			int trailingSame = 0;
 			int i = 0;
@@ -685,44 +640,41 @@ public class RealTimeText {
 			if (charsRemoved > 0) {
 				int posEndOfRemovedChars = before.text.length() - trailingSame;
 				int posStartOfRemovedChars = posEndOfRemovedChars - charsRemoved;
-				if ((before.pos == posEndOfRemovedChars)
-						|| (posEndOfRemovedChars == before.text.length())) {
-					// Cursor ideally positioned for <e> BACKSPACE operations
-					// rather than delete
-					AppendElement.Backspace(rtt.actions, posEndOfRemovedChars, charsRemoved, before.text.length());
+				if ((posEndOfRemovedChars == before.pos) ||
+				    (posEndOfRemovedChars == before.text.length())) {
+					// Cursor ideally positioned for <e> BACKSPACE action element
+					AppendElement.backspace(rtt.actions, posEndOfRemovedChars, charsRemoved, before.text.length());
 					curPos = posStartOfRemovedChars;
 				} else {
-					// Cursor ideally positioned for <d> FORWARD DELETE
-					// operations rather than backspace
-					AppendElement.ForwardDelete(rtt.actions, posStartOfRemovedChars, charsRemoved);
+					// Cursor ideally positioned for <d> FORWARD DELETE action element
+					AppendElement.forwardDelete(rtt.actions, posStartOfRemovedChars, charsRemoved);
 					curPos = posStartOfRemovedChars;
 				}
 			}
 
-			// Do an <t> INSERT operation if any text insertion is detected
-			// anywhere in the string
+			// Do <t> INSERT action element if any text insertion is detected anywhere in the string
 			int charsInserted = after.text.length() - trailingSame - leadingSame;
 			try {
 				String insertedText = after.text.substring(leadingSame, leadingSame + charsInserted);
-				AppendElement.Insert(rtt.actions, insertedText, curPos, before.text.length());
+				AppendElement.insert(rtt.actions, insertedText, curPos, before.text.length());
 			} catch (Exception ex) {
 				System.out.println("Oh no!! ... " + ex.toString());
 			}
 			curPos += charsInserted;
+		}
 
-			// Execute a <c> CURSOR POSITION operation to move cursor to final
-			// location, if last edit action element didn't put cursor there.
-			if (curPos != after.pos) {
-				AppendElement.CursorPosition(rtt.actions, after.pos);
-				curPos = after.pos;
-			}
+        // To assist in the optional remote cursor, do a blank <t> INSERT action element
+		if ((before.pos != -1) &&
+		    (curPos != after.pos))
+		{
+			AppendElement.cursorPosition(rtt.actions, after.pos);
 		}
 	}
 
 	// ---------------------------------------------------------------------------------------------
 	/**
 	 * Class to calculate very accurate delay intervals, used for recording
-	 * delays between actions (such as the pauses between key presses) for
+	 * intervals between actions (such as the pauses between key presses) for
 	 * encoding & decoding of the 'w' action element during real time text
 	 * communications. Delay interval values are calculated using an accumulated
 	 * delay total since the beginning of an &lt;rtt&rt; element. This
@@ -732,6 +684,7 @@ public class RealTimeText {
 	 * to software/CPU performance variations. The calculations in this class is
 	 * immune to system & software performance variations AND is also immune to
 	 * accumulated rounding errors.
+	 * NOTE: This ultra-precision is NOT REQUIRED for XEP-0301. However, it improves quality.
 	 */
 	static class DelayCalculator {
 		private long startTime = 0;
@@ -761,9 +714,7 @@ public class RealTimeText {
 		 * typical usage, the aim is that the returned value will typically
 		 * exactly equal delayInterval.
 		 * 
-		 * @param delay
-		 *            Recommended delay interval. (typically, from a delay
-		 *            action element)
+		 * @param currentKeyInterval Recommended delay interval. (typically, from an interval action element)
 		 * @returns Adjusted delay interval
 		 */
 		public int getCompensatedDelay(int delayInterval) {
@@ -794,7 +745,9 @@ public class RealTimeText {
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	/** Class to decode incoming real time text (action elements) */
+	/** Class to decode incoming real time text (action elements) upon receiving 
+	 *  This class is thread-safe for multithreading, to optionally support key press intervals.
+     */
 	static public class Decoder implements Runnable {
 
 		private Message message = new Message();
@@ -803,13 +756,15 @@ public class RealTimeText {
 		private boolean activated = false;
 		private int seq = 0;
 
-        /** Listener for decoder */
+        /** Listener for decoder events */
         public EventListener decoderListener = null;
 		public interface EventListener {
-			/** Callback event for asynchronous RTT decoding (This mainly used for Natural Typing mode) */
+			/** Callback event for asynchronous RTT decoding (supports playback of typing at original key press intervals) */
 			public void rttTextUpdated();
-			/** Callback event that is called everytime sync state changes (loss of sync, caused by missing or out-of-order rtt packets) */
-			public void rttSyncStateChanged(boolean syncState);
+			/** Callback event that is called every time sync state changes (error recovery for loss of sync, including lost messages) */
+			public void rttSyncStateChanged(boolean isInSync);
+			/** Callback event that is called every time real-time text is activated or deactivated */
+			public void rttActivationChanged(boolean isActivated);
 		}
 
         private boolean enableThread = false;
@@ -839,8 +794,8 @@ public class RealTimeText {
             synchronized (rttElementQueue) {
                 rttElementQueue.clear();
                 message.reset();
-                message.setDelaysEnabled(true);
-                sync = false;
+                message.setKeyIntervalsEnabled(true);
+                sync = true;
             	synchronized (rttThreadEvent) {
                 	rttThreadEvent.notify();
             	}
@@ -887,8 +842,8 @@ public class RealTimeText {
                             RealTimeText.DecodeRawRTT(rtt, message);
                             if (rtt.isEmpty()) rttElementQueue.remove(0);
 
-                            if (message.delay != 0) {
-                                interval = message.delay;
+                            if (message.currentKeyInterval != 0) {
+                                interval = message.currentKeyInterval;
                                 break;
                             }
                         }
@@ -896,7 +851,7 @@ public class RealTimeText {
                     if (!enableThread) break;
                 }
 
-                // (MUST be lock-free) Calls the user-defined event for one step of text decode 
+                // (MUST be outside 'synchronized' section) Calls the user-defined event for one step of text decode 
                 if (elementsFound && (decoderListener != null)) {
                 	decoderListener.rttTextUpdated();
                 }
@@ -946,54 +901,53 @@ public class RealTimeText {
 		public boolean decode(RootElement rttNew)
 		{
 			if (rttNew == null) return false;
+            if (DEBUG_CONSOLE_XML) System.out.println("INCOMING RTT: " + rttNew.toXML());
 			
 			synchronized (rttElementQueue) {
+                boolean oldSync = sync;
+                boolean oldActivated = activated;
 				try {
 					if (rttNew.seq < 0) {
-						this.sync = false;
+						sync = false;
 					} else if (rttNew.event != null) {
-						if ("new".equals(rttNew.event)) {
-							// New RTT message. This brings us into SYNC.
+						if ("new".equals(rttNew.event) || "reset".equals(rttNew.event)) {
+							// New/Reset RTT message. This brings us into SYNC.
 							reset();
-							this.activated = true;
-							this.sync = true;
-							this.seq = rttNew.seq;
+							activated = true;
+							seq = rttNew.seq;
 							rttElementQueue.add(rttNew);
-							if (decoderListener != null) decoderListener.rttSyncStateChanged(true);
-						} else if ("reset".equals(rttNew.event)) {
-							// Reset RTT message. This brings us into SYNC.
-							message.reset();
-							this.activated = true;
-							this.sync = true;
-							this.seq = rttNew.seq;
-							rttElementQueue.add(rttNew);
-							if (decoderListener != null) decoderListener.rttSyncStateChanged(true);
-						} else if ("start".equals(rttNew.event)) {
-							this.activated = true;
-						} else if ("stop".equals(rttNew.event)) {
-							this.activated = false;
+						} else if ("cancel".equals(rttNew.event)) {
+							activated = false;
 						} else {
 							// Undocumented 'event' attribute value is specified as an OUT-OF-SYNC condition.
-							this.sync = false; 
+							sync = false; 
 						}
 					} else if (rttNew.seq != (this.seq + 1)) {
 						// Non-consecutive increment in 'seq' is specified as an OUT-OF-SYNC condition.
-						this.sync = false;
+						sync = false;
 					} else {
-						this.seq = rttNew.seq;
-						if (this.sync) rttElementQueue.add(rttNew);
+						// Append to existing RTT message queue
+						seq = rttNew.seq;
+						rttElementQueue.add(rttNew);
 					}
 				} catch (Exception ex) {
                     // Any exception occurring at this point, should be assumed as an OUT-OF-SYNC condition. (i.e. NumberFormatException, etc)
 					System.out.println("EXCEPTION: thrown in RTTdecode.Queue: " + ex.toString());
                     this.sync = false;
 				}
+
+				// If the activation state changed (real time text started/stopped), notify our event.
+				if (activated != oldActivated) {
+					if (decoderListener != null) decoderListener.rttActivationChanged(activated);
+				}
+
+				// If the sync state changed (we lose sync with real time text), notify our event.
+				if (sync != oldSync) {
+					if (decoderListener != null) decoderListener.rttSyncStateChanged(sync);
+				}
 				
-	            if (!sync) {
-	                // If we're no longer in sync, then inform this object's owner
-	                if (decoderListener != null) decoderListener.rttSyncStateChanged(false);
-	            }
-	            triggerDecodeThread();
+				// Start/resume the decoder thread if we've got RTT elements to decode
+				if (!rttElementQueue.isEmpty()) triggerDecodeThread();
 			}
 			return sync;
 		}
@@ -1006,167 +960,267 @@ public class RealTimeText {
         {
             synchronized (rttElementQueue)
             {
-                message.setDelaysEnabled(false);
+                message.setKeyIntervalsEnabled(false);
 				for (int i = 0; i < rttElementQueue.size(); i++) {
                     RealTimeText.DecodeRawRTT(rttElementQueue.get(i), message);
                 }
                 rttElementQueue.clear();
-                message.setDelaysEnabled(true);
+                message.setKeyIntervalsEnabled(true);
                 return message.text;
             }
         }
 		
-        /** Getter for the current state of the message string (Thread safe) */
+        /** Gets the current state of the message string (Thread safe) */
 		public String getText() {
         	synchronized (rttElementQueue) { return message.text; }
         }
 
-        /** Alias for decoder.text */
+        /** Alias for getText() */
         public String toString()
         {
         	synchronized (rttElementQueue) { return message.text; }
         }
 
-        /** Getter for the current character index position of the cursor (Thread safe) */
+        /** Gets the current character index position of the cursor (Thread safe) */
         public int getCursorPos()
         {
         	synchronized (rttElementQueue) { return message.pos; }
         }
 		
-		/** getter for activated flag. False means real time text is not activated. (Thread safe) */
+		/** Gets the activated flag. False means real time text is not activated. (Thread safe) */
 		public boolean isActivated() {
 			synchronized (rttElementQueue) { return activated; }
 		}
 
-		/** getter for sync flag. False means real time text is out of sync. (Thread safe) */
+		/** Gets the sync flag. False means real time text is out of sync. (Thread safe) */
 		public boolean inSync() {
 			synchronized (rttElementQueue) { return sync; }
 		}
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	/** Class to encode outgoing real time text (action elements) */
+    /** Class to encode outgoing real time text (action elements) upon sending.
+      * This class is thread-safe for multithreading, to optionally support key press intervals.
+      */
 	static public class Encoder {
 		RootElement rtt = new RootElement();
-		private Message prevMessage = new Message();
-		private int transmitInterval = RealTimeText.INTERVAL_DEFAULT;
+		private Message messagePrevious = new Message();
+		private Message message = new Message();
 		private boolean newMsg;
 		private int seq = 0;
+		private Random random = new Random();
+		
+        // Transmit interval variables
 		private DelayCalculator delayCalculator = new DelayCalculator();
+		private int transmitInterval = RealTimeText.DEFAULT_TRANSMIT_INTERVAL;
+		
+        // Fault tolerant redundancy variables
+        private boolean fullMessageTransmit = false;
+        private boolean redundancy = true;
+        private long redundancyClockStart = System.currentTimeMillis();
+        private int redundancyInterval = RealTimeText.DEFAULT_REDUNDANCY_INTERVAL;
 		
 		/** Constructor.
-		 *  @param enableDelays Flag to enable encoding of delays between key presses
+		 *  @param enableIntervals Flag to enable encoding of intervals between key presses
 		 */
-		public Encoder(boolean enableDelays) {
-			newMsg = true;
-			seq = 0;
-			prevMessage.setDelaysEnabled(enableDelays);
-			reset();
+		public Encoder(boolean enableIntervals) {
+			message.setKeyIntervalsEnabled(enableIntervals);
+			clear();
 		}
 
 		/** Reinitialize the RTT encoder to a blank string state */
-		public void reset() {
-			prevMessage.reset();
+		public void clear() {
+            fullMessageTransmit = false;
+			message.reset();
+			messagePrevious.reset();
 			rtt = new RealTimeText.RootElement();
 		}
 
 		/** Resets the RTT encoder to starts a new message */
 		public void nextMsg() {
-			reset();
+			clear();
 			newMsg = true;
 		}
 
-		/**
-		 * Returns the current RTT encoding as an XML element, and then
-		 * immediately starts a new RTT fragment
-		 */
+		/** Returns the current RTT encoding as an XML element, and then immediately starts a new RTT fragment */
 		public RootElement getEncodedRTT() {
 			RootElement rttEncoded = rtt;
 			rttEncoded.setXmlns(RealTimeText.NAMESPACE);
-			rttEncoded.setSeq(this.seq);
-			seq++;
-
-			// 'event' attribute. The first RTT element of a real time message
-			// always has event='new'
+			
+            // The first RTT element of a new message always has event='new'
+            // (i.e. This rtt element contains the first character of real time text)
 			if (newMsg) {
 				rttEncoded.setEvent("new");
 				newMsg = false;
+				seq = random.nextInt(1000000);   // Generates up to a 6-digit random number.  XEP-0301 recommends randomization, and keeping numbers compact for bandwidth savings
+				if (redundancy) {
+					redundancyClockStart = System.currentTimeMillis();
+				}
+			}
+			else
+			{
+                // Error recovery/fault tolerance: Automatic retransmission
+				if (redundancy && 
+				    ((System.currentTimeMillis() - redundancyClockStart) > redundancyInterval)) {
+					fullMessageTransmit = true;
+					redundancyClockStart = System.currentTimeMillis();
+				}
+                // Automatic and/or manually forced message retransmission
+                if (fullMessageTransmit) {
+                	rttEncoded.setEvent("reset");
+                	if (messagePrevious.pos != messagePrevious.text.length()) {
+                        // For clients supporting an optional remote cursor position, a blank INSERT TEXT <t> elements sets the cursor position.
+            			ActionElement resetPos = new ActionElement("t");
+            			resetPos.p = messagePrevious.pos;
+            			rtt.actions.add(0, resetPos); // Prepend
+                    }
+                	if (!messagePrevious.text.isEmpty())
+                	{
+	                    // Retransmission of full message text in an INSERT TEXT <t> element.
+	        			ActionElement resetText = new ActionElement("t");
+	        			resetText.text = messagePrevious.text;
+	        			rtt.actions.add(0, resetText); // Prepend
+                	}
+                }
+			}
+			rttEncoded.setSeq(this.seq);
+			seq++;
+			
+			fullMessageTransmit = false;
+            try {
+            	messagePrevious = message.copy();
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
 			}
 
 			// Create new RTT element for next message.
 			rtt = new RealTimeText.RootElement();
+            if (DEBUG_CONSOLE_XML) System.out.println("outgoing rtt: " + rttEncoded.toXML());
 			return rttEncoded;
 		}
 
-		/** Encodes message changes into a real time action elements in an &lt;rtt&rt; element */
-		public void encode(String text, int cursorPos) {
-			if ((text != prevMessage.getText()) || (cursorPos != prevMessage.getCursorPos())) {
-				
-				// If necessary, generate the 'g' beep action element
-				if (prevMessage.beeped) {
-					RealTimeText.AppendElement.Flash(rtt.actions);
-					prevMessage.beeped = false;
-				}
+        /** Encodes RTT fragment for the specified text. This encoder compares this text 
+         *  to the previous state of text, and generates a compact RTT code for this text
+         *  
+         *  @param text Current state of message text
+         */
+        public void encode(String text)
+        {
+            encode(text, -1);
+        }
 
-				// If necessary, generate the 'w' delay action element
-				if (prevMessage.getDelaysEnabled()) {
-					// Delay calculator starts on first rtt element.
-					if (rtt.actions.isEmpty()) delayCalculator.start();
+        /** Encodes a cursor movement for the optional remote cursor 
+         *  
+         *  @param cursorPos Current position index within text, for optional remote cursor
+         */
+        public void encode(int cursorPos)
+        {
+            encode(null, cursorPos);
+        }
+		
+        /** Encodes RTT fragment for the specified text. This encoder compares this text 
+         *  to the previous state of text, and generates a compact RTT code for this text
+         *  
+         *  @param text Current state of message text
+         *  @param cursorPos Current position index within text, for optional remote cursor
+         */
+		public void encode(String text, int cursorPos) {
+			if (text == null) text = message.text;
+            boolean textChanged = !message.text.equals(text);
+            boolean posChanged = (cursorPos != -1) && (cursorPos != message.pos);
+			if (textChanged || posChanged) {
+				// If necessary, generate the 'w' interval action element
+				if (message.getKeyIntervalsEnabled()) {
+					if (rtt.actions.isEmpty()) delayCalculator.start();  // Delay calculator starts on first rtt element.
 
 					int milliseconds = delayCalculator.getMillisecondsSinceLastCall();
 					if (milliseconds > 0) {
-						// Limit delays to maximum interval.
-						if (milliseconds > transmitInterval) milliseconds = transmitInterval;
-						RealTimeText.AppendElement.Delay(rtt.actions, milliseconds);
+						if (milliseconds > transmitInterval) milliseconds = transmitInterval;  // Limit delays to maximum interval.
+						RealTimeText.AppendElement.interval(rtt.actions, milliseconds);
 					}
 				}
 
 				// Encode the text differences since last message, into action elements.
 				RealTimeText.Message newMessage = new RealTimeText.Message(text, cursorPos);
-				RealTimeText.EncodeRawRTT(rtt, prevMessage, newMessage);
-				prevMessage.setText(text);
-				prevMessage.setCursorPos(cursorPos);
+				RealTimeText.EncodeRawRTT(rtt, message, newMessage);
+				message.text = text;
+				message.pos = cursorPos;
 			}
 		}
 
-		/** Gets the last state of the text */
-		public String getText() {
-			return prevMessage.getText();
-		}
-
-		/** Alias for Encoder.Text */
-		public String toString() {
-			return prevMessage.getText();
-		}
-
-		/** Get the last state of the cursor position index */
-		public int getCursorPos() {
-			return prevMessage.getCursorPos();
-		}
-
-		/** Gets the status of the RTT encoder, if there is any rtt action elements to transmit */
+		/** Gets flag indicating that there is no real time text encoded in the queue. */
 		public boolean isEmpty() {
 			return rtt.actions.isEmpty();
 		}
+		
+		/** Gets flag whether or not this is a new message */
+		public boolean isNew() {
+			return newMsg;
+		}
 
-		/** Gets transmission interval of real time text */
+		/** Gets the current state of the real time text */
+		public String getText() {
+			return message.getText();
+		}
+
+		/** Alias for Encoder.getText() */
+		public String toString() {
+			return message.getText();
+		}
+
+		/** Gets the current cursor position index into message text, used only if an optional remote cursor is used */
+		public int getCursorPos() {
+			return message.getCursorPos();
+		}
+
+		/** Gets transmission interval, in milliseconds, of regular real time text */
 		public int getTransmitInterval() {
 			return transmitInterval;
 		}
 
-		/** Sets transmission interval of real time text */
+		/** Sets transmission interval, in milliseconds, of regular real time text */
 		public void setTransmitInterval(int value) {
 			transmitInterval = value;
 		}
 
-		/** Gets enabled state of transmission of 'W' interval elements, for encoding of pauses between keypresses */
-		public boolean getDelaysEnabled() {
-			return prevMessage.getDelaysEnabled();
+		/** Gets flag to enable automatic redundancy for error recovery/fault tolerance */
+		public boolean getRedundancyEnabled() {
+			return redundancy;
 		}
 
-		/** Sets enabled state of transmission of 'W' interval elements, for encoding of pauses between keypresses */
-		public void setDelaysEnabled(boolean value) {
-			prevMessage.setDelaysEnabled(value);
+		/** Sets flag to enable automatic redundancy for error recovery/fault tolerance */
+		public void setRedundancyEnabled(boolean value) {
+			redundancy = value;
+		}
+
+		/** Gets redundancy interval, in milliseconds, for real time text */
+		public int getRedundancyInterval() {
+			return redundancyInterval;
+		}
+
+		/** Sets redundancy interval, in milliseconds, for real time text */
+		public void setRedundancyInterval(int value) {
+			redundancyInterval = value;
+		}
+
+		/** Gets flag to force retransmission of the whole message in next RTT element */
+		public boolean getForceRetransmit() {
+			return fullMessageTransmit;
+		}
+
+		/** Sets flag to force retransmission of the whole message in next RTT element */
+		public void setForceRetransmit(boolean value) {
+			fullMessageTransmit = value;
+		}
+		
+		/** Gets flag that enable transmission of 'W' interval elements between action elements, for encoding of pauses between key presses */
+		public boolean getKeyIntervalsEnabled() {
+			return message.getKeyIntervalsEnabled();
+		}
+
+		/** Sets flag that enable transmission of 'W' interval elements between action elements, for encoding of pauses between key presses */
+		public void setKeyIntervalsEnabled(boolean value) {
+			message.setKeyIntervalsEnabled(value);
 		}
 	}
 }
