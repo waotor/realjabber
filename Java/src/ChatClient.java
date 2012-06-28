@@ -251,28 +251,22 @@ public class ChatClient extends JFrame implements MessageListener, Runnable,
 	// ---------------------------------------------------------------------------------------------
 	/** Listener for text-changed event */
 	public void changedUpdate(DocumentEvent event) {
-		// Chat message entry changed.
-		rttEncodeMessageChanges();
 	}
 
 	// ---------------------------------------------------------------------------------------------
 	/** Listener for text-insert event */
 	public void insertUpdate(DocumentEvent event) {
-		// Text inserted into chat message
-		rttEncodeMessageChanges();
 	}
 
 	// ---------------------------------------------------------------------------------------------
 	/** Listener for text-removal event */
 	public void removeUpdate(DocumentEvent event) {
-		// Text removed from chat message
-		rttEncodeMessageChanges();
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	/** Listener for cursor movement. */
+	/** Listener for cursor movement (which also occurs when there's text changes). */
 	public void caretUpdate(CaretEvent event) {
-		// Capture of cursor movements
+		// Capture of cursor movements and text changes
 		rttEncodeMessageChanges();
 	}
 
@@ -354,6 +348,10 @@ public class ChatClient extends JFrame implements MessageListener, Runnable,
 		}
 	}
 
+	/** RTT decoder listener for activation state changes */
+	public void rttActivationChanged(boolean activationChanged) {
+	}
+
 	/** RTT decoder listener for sync state changes */
 	public void rttSyncStateChanged(boolean syncStateChanged) {
 	}
@@ -366,7 +364,7 @@ public class ChatClient extends JFrame implements MessageListener, Runnable,
 			}
 		});
 	}
-
+	
 	// ---------------------------------------------------------------------------------------------
 	/** Timer event for real time text update */
 	@Override
