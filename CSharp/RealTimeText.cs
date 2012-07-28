@@ -46,7 +46,6 @@ namespace RealJabber.RealTimeTextUtil
     ///   ACTION           CODE               DESCRIPTION
     ///   Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
     ///   Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-    ///   Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
     ///   Interval         <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
     /// </summary>
     public class RealTimeText
@@ -54,7 +53,7 @@ namespace RealJabber.RealTimeTextUtil
         // Specification constants
         public const string ROOT = "rtt";
         public const string NAMESPACE = "urn:xmpp:rtt:0";
-        public const string VERSION = "0.3";
+        public const string VERSION = "0.6";
 
         /// <summary>The default recommended transmission interval (in milliseconds) for real time text</summary>
         public const int DEFAULT_TRANSMIT_INTERVAL = 700;
@@ -172,23 +171,6 @@ namespace RealJabber.RealTimeTextUtil
                 rtt.AppendChild(backspaceCode);
             }
 
-            /// <summary>D Element - Forward Delete - Delete # of characters beginning at specified position</summary>
-            /// <param name="rtt">The rtt element to append to</param>
-            /// <param name="pos">Position to delete characters at.</param>
-            /// <param name="count">Count of characters to delete.</param>
-            public static void ForwardDelete(XmlElement rtt, int pos, int count)
-            {
-                if (count <= 0) return;
-
-                XmlElement deleteCode = rtt.OwnerDocument.CreateElement("d");
-                if (count != 1)
-                {
-                    deleteCode.SetAttribute("n", count.ToString());
-                }
-                deleteCode.SetAttribute("p", pos.ToString());
-                rtt.AppendChild(deleteCode);
-            }
-
             /// <summary>W Element - Interval - Pause specified amount (i.e. intervals between key presses)</summary>
             /// <param name="rtt">The rtt element to append to</param>
             /// <param name="milliseconds">Number of thousandths of seconds to delay</param>
@@ -272,10 +254,6 @@ namespace RealJabber.RealTimeTextUtil
                             text = text.Remove(message.CursorPos - count, count);
                             message.CursorPos -= count;
                             break;
-                        case "d": // Forward Delete action element: <d p="#" n="#"/>
-                            message.CursorPos = pos;
-                            text = text.Remove(message.CursorPos, count);
-                            break;
                         case "w": // Interval action element: <w n="#"/>
                             if (message.KeyIntervalsEnabled)
                             {
@@ -313,7 +291,7 @@ namespace RealJabber.RealTimeTextUtil
             int curPos = before.CursorPos;
             bool textChanged = (before.Text != after.Text);
             bool posChanged = (before.CursorPos != after.CursorPos);
-            if (!textChanged && !posChanged) return;
+            if (!textChanged && !posChanged) return rtt;
 
 #if _DEBUG_RTT_CODEC
             XmlElement lastChild = (XmlElement)rtt.LastChild;
@@ -357,19 +335,10 @@ namespace RealJabber.RealTimeTextUtil
                 {
                     int posEndOfRemovedChars = before.Text.Length - trailingSame;
                     int posStartOfRemovedChars = posEndOfRemovedChars - charsRemoved;
-                    if ((posEndOfRemovedChars == before.CursorPos) ||
-                        (posEndOfRemovedChars == before.Text.Length))
-                    {
-                        // Cursor ideally positioned for <e> BACKSPACE action element
-                        AppendElement.Backspace(rtt, posEndOfRemovedChars, charsRemoved, before.Text.Length);
-                        curPos = posStartOfRemovedChars;
-                    }
-                    else
-                    {
-                        // Cursor ideally positioned for <d> FORWARD DELETE action element
-                        AppendElement.ForwardDelete(rtt, posStartOfRemovedChars, charsRemoved);
-                        curPos = posStartOfRemovedChars;
-                    }
+
+                    // Do <e> BACKSPACE action element to delete text block
+                    AppendElement.Backspace(rtt, posEndOfRemovedChars, charsRemoved, before.Text.Length);
+                    curPos = posStartOfRemovedChars;
                 }
 
                 // Do <t> INSERT action element if any text insertion is detected anywhere in the string
