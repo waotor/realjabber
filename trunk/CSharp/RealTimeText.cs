@@ -40,20 +40,20 @@ namespace RealJabber.RealTimeTextUtil
     ///   See the License for the specific language governing permissions and
     ///   limitations under the License.
     ///
-    /// TABLE OF SUPPORTED ACTION ELEMENTS
-    ///   For more information, please see http://www.realjabber.org
-    ///   ----------------------------------------------------------
+    /// TABLE OF ACTION ELEMENTS
+    ///   For more information, see http://www.xmpp.org/extensions/xep-0301.html
+    ///   ----------------------------------------------------------------------
     ///   ACTION           CODE               DESCRIPTION
-    ///   Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
-    ///   Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-    ///   Interval         <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
+    ///   Insert Text      <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
+    ///   Erase Text       <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+    ///   Wait Inteval     <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
     /// </summary>
     public class RealTimeText
     {
         // Specification constants
         public const string ROOT = "rtt";
         public const string NAMESPACE = "urn:xmpp:rtt:0";
-        public const string VERSION = "0.6";
+        public const string VERSION = "0.7";
 
         /// <summary>The default recommended transmission interval (in milliseconds) for real time text</summary>
         public const int DEFAULT_TRANSMIT_INTERVAL = 700;
@@ -132,12 +132,12 @@ namespace RealJabber.RealTimeTextUtil
         /// <summary>Class to generate action elements</summary>
         public static class AppendElement
         {
-            /// <summary>T Element - Insert/Append Text - Inserts text at specified position, or appends text to end of line</summary>
+            /// <summary>T Element - Insert Text - Inserts text at specified position, or appends text to end of line</summary>
             /// <param name="rtt">The rtt element to append to</param>
             /// <param name="text">Text to insert</param>
             /// <param name="pos">Position to insert text at</param>
             /// <param name="len">Length of original text to insert into (for automatic omission of 'pos' if at end of string)</param>
-            public static void Insert(XmlElement rtt, string text, int pos, int len)
+            public static void InsertText(XmlElement rtt, string text, int pos, int len)
             {
                 if (String.IsNullOrEmpty(text)) return;
 
@@ -150,12 +150,12 @@ namespace RealJabber.RealTimeTextUtil
                 rtt.AppendChild(insertCode);
             }
 
-            /// <summary>E Element - Backspace - Erase # characters before specified position</summary>
+            /// <summary>E Element - Erase Text - Erase # characters before specified position</summary>
             /// <param name="rtt">The rtt element to append to</param>
             /// <param name="pos">Position to begin backspacing at</param>
             /// <param name="count">Count of characters to backspaces</param>
             /// <param name="len">Length of original string</param>
-            public static void Backspace(XmlElement rtt, int pos, int count, int len)
+            public static void EraseText(XmlElement rtt, int pos, int count, int len)
             {
                 if (count <= 0) return;
 
@@ -174,7 +174,7 @@ namespace RealJabber.RealTimeTextUtil
             /// <summary>W Element - Interval - Pause specified amount (i.e. intervals between key presses)</summary>
             /// <param name="rtt">The rtt element to append to</param>
             /// <param name="milliseconds">Number of thousandths of seconds to delay</param>
-            public static void Interval(XmlElement rtt, int milliseconds)
+            public static void WaitInterval(XmlElement rtt, int milliseconds)
             {
                 if (milliseconds > 0)
                 {
@@ -240,21 +240,21 @@ namespace RealJabber.RealTimeTextUtil
 
                     switch (actionElement.Name)
                     {
-                        case "t": // Insert action element: <t p="#">text</i>
-                            message.CursorPos = pos;  // Reposition cursor even if <t> is empty.
+                        case "t": // Insert Text action element: <t p="#">text</i>
+                            message.CursorPos = pos;  // Reposition cursor even if <t/> is empty.
                             if (!String.IsNullOrEmpty(actionElement.InnerText))
                             {
                                 text = text.Insert(message.CursorPos, actionElement.InnerText);
                                 message.CursorPos = message.CursorPos + actionElement.InnerText.Length;
                             }
                             break;
-                        case "e": // Backspace action element: <e p="#" n="#"/>
+                        case "e": // Erase Text action element: <e p="#" n="#"/>
                             message.CursorPos = pos;
                             if (count > message.CursorPos) count = message.CursorPos;
                             text = text.Remove(message.CursorPos - count, count);
                             message.CursorPos -= count;
                             break;
-                        case "w": // Interval action element: <w n="#"/>
+                        case "w": // Wait Interval action element: <w n="#"/>
                             if (message.KeyIntervalsEnabled)
                             {
                                 message.CurrentKeyInterval = count;
@@ -329,26 +329,26 @@ namespace RealJabber.RealTimeTextUtil
                     trailingSame++;
                 }
 
-                // Delete text if a deletion is detected anywhere in the string.
+                // Erase text if a deletion is detected anywhere in the string.
                 int charsRemoved = before.Text.Length - trailingSame - leadingSame;
                 if (charsRemoved > 0)
                 {
                     int posEndOfRemovedChars = before.Text.Length - trailingSame;
                     int posStartOfRemovedChars = posEndOfRemovedChars - charsRemoved;
 
-                    // Do <e> BACKSPACE action element to delete text block
-                    AppendElement.Backspace(rtt, posEndOfRemovedChars, charsRemoved, before.Text.Length);
+                    // Do <e/> ERASE TEXT action element to delete text block
+                    AppendElement.EraseText(rtt, posEndOfRemovedChars, charsRemoved, before.Text.Length);
                     curPos = posStartOfRemovedChars;
                 }
 
-                // Do <t> INSERT action element if any text insertion is detected anywhere in the string
+                // Do <t/> INSERT TEXT action element if any text insertion is detected anywhere in the string
                 int charsInserted = after.Text.Length - trailingSame - leadingSame;
                 string insertedText = after.Text.Substring(leadingSame, charsInserted);
-                AppendElement.Insert(rtt, insertedText, curPos, before.Text.Length);
+                AppendElement.InsertText(rtt, insertedText, curPos, before.Text.Length);
                 curPos += charsInserted;
             }
 
-            // To assist in the optional remote cursor, do a blank <t> INSERT action element
+            // To assist in the optional remote cursor, do a blank <t/> INSERT TEXT action element
             if ((before.CursorPos != -1) &&
                 (curPos != after.CursorPos))
             {
@@ -650,6 +650,9 @@ namespace RealJabber.RealTimeTextUtil
                                     seq = seqNewValue;
                                     rttElementQueue.Add(rttNew);
                                     break;
+                                case "init":
+                                    activated = true;
+                                    break;
                                 case "cancel":
                                     activated = false;
                                     break;
@@ -830,16 +833,17 @@ namespace RealJabber.RealTimeTextUtil
                     if (fullMessageTransmit)
                     {
                         rttEncoded.SetAttribute("event", "reset");
-                        if (messagePrevious.CursorPos != messagePrevious.Text.Length)
+                        if ((messagePrevious.CursorPos != -1) &&
+                            (messagePrevious.CursorPos != messagePrevious.Text.Length))
                         {
-                            // For clients supporting an optional remote cursor position, a blank INSERT TEXT <t> elements sets the cursor position.
+                            // For clients supporting an optional remote cursor position, a blank INSERT TEXT <t/> elements sets the cursor position.
                             XmlElement resetPos = rttEncoded.OwnerDocument.CreateElement("t");
                             resetPos.SetAttribute("p", messagePrevious.CursorPos.ToString());
                             rtt.PrependChild(resetPos);
                         }
                         if (messagePrevious.Text.Length > 0)
                         {
-                            // Retransmission of full message text in an INSERT TEXT <t> element.
+                            // Retransmission of full message text in an INSERT TEXT <t/> element.
                             XmlElement resetText = rttEncoded.OwnerDocument.CreateElement("t");
                             resetText.InnerText = messagePrevious.Text;
                             rtt.PrependChild(resetText);
@@ -891,7 +895,7 @@ namespace RealJabber.RealTimeTextUtil
                         if (milliseconds > 0)
                         {
                             if (milliseconds > transmitInterval) milliseconds = transmitInterval;  // Limit delays to maximum interval.
-                            RealTimeText.AppendElement.Interval(rtt, milliseconds);
+                            RealTimeText.AppendElement.WaitInterval(rtt, milliseconds);
                         }
                     }
 
@@ -961,7 +965,7 @@ namespace RealJabber.RealTimeTextUtil
                 set { fullMessageTransmit = true; }
             }
 
-            /// <summary>Gets/Sets flag that enable transmission of 'W' interval elements between action elements, for encoding of pauses between key presses</summary>
+            /// <summary>Gets/Sets flag that enable transmission of <w/> Wait Interval action elements between action elements, for encoding of pauses between key presses</summary>
             public bool KeyIntervalsEnabled
             {
                 get { return message.KeyIntervalsEnabled; }

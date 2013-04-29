@@ -55,7 +55,8 @@ namespace RealJabber
             this.menuItem100ms = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem200ms = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem300ms = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuItem500ms = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItem700ms = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem1000ms = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem2000ms = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem3000ms = new System.Windows.Forms.ToolStripMenuItem();
@@ -87,6 +88,7 @@ namespace RealJabber
             this.textboxSendMsg3 = new System.Windows.Forms.RichTextBox();
             this.textboxParticipantLocal = new System.Windows.Forms.RichTextBox();
             this.panelOuter = new System.Windows.Forms.Panel();
+            this.menuItemEnableChatStates = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -119,7 +121,7 @@ namespace RealJabber
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuItemTextSize});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
             this.fileToolStripMenuItem.Text = "Display";
             // 
             // menuItemTextSize
@@ -130,34 +132,34 @@ namespace RealJabber
             this.menuItemTextLarge,
             this.menuItemTextHuge});
             this.menuItemTextSize.Name = "menuItemTextSize";
-            this.menuItemTextSize.Size = new System.Drawing.Size(129, 22);
+            this.menuItemTextSize.Size = new System.Drawing.Size(119, 22);
             this.menuItemTextSize.Text = "Text Size";
             // 
             // menuItemTextSmall
             // 
             this.menuItemTextSmall.Name = "menuItemTextSmall";
-            this.menuItemTextSmall.Size = new System.Drawing.Size(121, 22);
+            this.menuItemTextSmall.Size = new System.Drawing.Size(119, 22);
             this.menuItemTextSmall.Text = "Small";
             this.menuItemTextSmall.Click += new System.EventHandler(this.menuItemTextSmall_Click);
             // 
             // menuItemTextMedium
             // 
             this.menuItemTextMedium.Name = "menuItemTextMedium";
-            this.menuItemTextMedium.Size = new System.Drawing.Size(121, 22);
+            this.menuItemTextMedium.Size = new System.Drawing.Size(119, 22);
             this.menuItemTextMedium.Text = "Medium";
             this.menuItemTextMedium.Click += new System.EventHandler(this.menuItemTextMedium_Click);
             // 
             // menuItemTextLarge
             // 
             this.menuItemTextLarge.Name = "menuItemTextLarge";
-            this.menuItemTextLarge.Size = new System.Drawing.Size(121, 22);
+            this.menuItemTextLarge.Size = new System.Drawing.Size(119, 22);
             this.menuItemTextLarge.Text = "Large";
             this.menuItemTextLarge.Click += new System.EventHandler(this.menuItemTextLarge_Click);
             // 
             // menuItemTextHuge
             // 
             this.menuItemTextHuge.Name = "menuItemTextHuge";
-            this.menuItemTextHuge.Size = new System.Drawing.Size(121, 22);
+            this.menuItemTextHuge.Size = new System.Drawing.Size(119, 22);
             this.menuItemTextHuge.Text = "Huge";
             this.menuItemTextHuge.Click += new System.EventHandler(this.menuItemTextHuge_Click);
             // 
@@ -167,20 +169,20 @@ namespace RealJabber
             this.menuItemClear,
             this.exitToolStripMenuItem});
             this.converToolStripMenuItem.Name = "converToolStripMenuItem";
-            this.converToolStripMenuItem.Size = new System.Drawing.Size(83, 20);
+            this.converToolStripMenuItem.Size = new System.Drawing.Size(89, 20);
             this.converToolStripMenuItem.Text = "Conversation";
             // 
             // menuItemClear
             // 
             this.menuItemClear.Name = "menuItemClear";
-            this.menuItemClear.Size = new System.Drawing.Size(129, 22);
+            this.menuItemClear.Size = new System.Drawing.Size(122, 22);
             this.menuItemClear.Text = "Clear";
             this.menuItemClear.Click += new System.EventHandler(this.menuItemClear_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.exitToolStripMenuItem.Text = "End Chat";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -197,43 +199,43 @@ namespace RealJabber
             this.menuItemCustomTransmitInterval,
             this.menuItemEnableKeyPressIntervals,
             this.menuItemEnableRemoteCursor,
+            this.menuItemEnableChatStates,
             this.toolStripSeparator5,
             this.menuItemRealJabber});
             this.experimentationToolStripMenuItem.Name = "experimentationToolStripMenuItem";
-            this.experimentationToolStripMenuItem.Size = new System.Drawing.Size(86, 20);
+            this.experimentationToolStripMenuItem.Size = new System.Drawing.Size(90, 20);
             this.experimentationToolStripMenuItem.Text = "RTT Research";
             // 
             // menuItemEnableRTT
             // 
             this.menuItemEnableRTT.Name = "menuItemEnableRTT";
-            this.menuItemEnableRTT.Size = new System.Drawing.Size(539, 22);
+            this.menuItemEnableRTT.Size = new System.Drawing.Size(582, 22);
             this.menuItemEnableRTT.Text = "Enable Real Time Text";
             this.menuItemEnableRTT.Click += new System.EventHandler(this.menuItemEnableRTT_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(536, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(579, 6);
             // 
             // menuItemNaturalTypingMode1
             // 
             this.menuItemNaturalTypingMode1.Name = "menuItemNaturalTypingMode1";
-            this.menuItemNaturalTypingMode1.Size = new System.Drawing.Size(539, 22);
-            this.menuItemNaturalTypingMode1.Text = "Recommended Spec Support (1000ms transmit interval, embedded key press intervals)" +
-                "";
+            this.menuItemNaturalTypingMode1.Size = new System.Drawing.Size(582, 22);
+            this.menuItemNaturalTypingMode1.Text = "Recommended (700ms transmit interval, embedded key press intervals)";
             this.menuItemNaturalTypingMode1.Click += new System.EventHandler(this.menuItemSpecificationRecommended_Click);
             // 
             // menuItemNaturalTypingMode2
             // 
             this.menuItemNaturalTypingMode2.Name = "menuItemNaturalTypingMode2";
-            this.menuItemNaturalTypingMode2.Size = new System.Drawing.Size(539, 22);
-            this.menuItemNaturalTypingMode2.Text = "Low-Lag Spec Support (500ms transmit interval, embedded key press intervals)";
+            this.menuItemNaturalTypingMode2.Size = new System.Drawing.Size(582, 22);
+            this.menuItemNaturalTypingMode2.Text = "Low-Lag Spec Support (300ms interval, embedded key press intervals)";
             this.menuItemNaturalTypingMode2.Click += new System.EventHandler(this.menuItemSpecificationLowLag_Click);
             // 
             // menuItemResetToBaseline
             // 
             this.menuItemResetToBaseline.Name = "menuItemResetToBaseline";
-            this.menuItemResetToBaseline.Size = new System.Drawing.Size(539, 22);
+            this.menuItemResetToBaseline.Size = new System.Drawing.Size(582, 22);
             this.menuItemResetToBaseline.Text = "Barebones Spec Support (1000ms transmit interval, bursty text output) - NOT RECOM" +
                 "MENDED";
             this.menuItemResetToBaseline.Click += new System.EventHandler(this.menuItemSpecificationBadBurstyText_Click);
@@ -241,7 +243,7 @@ namespace RealJabber
             // menuItemNaturalTypingMode3
             // 
             this.menuItemNaturalTypingMode3.Name = "menuItemNaturalTypingMode3";
-            this.menuItemNaturalTypingMode3.Size = new System.Drawing.Size(539, 22);
+            this.menuItemNaturalTypingMode3.Size = new System.Drawing.Size(582, 22);
             this.menuItemNaturalTypingMode3.Text = "Transmit All Keypresses Immediately (immediate transmit, no buffering) - NOT RECO" +
                 "MMENDED";
             this.menuItemNaturalTypingMode3.Click += new System.EventHandler(this.menuItemSpecificationBadImmediateTransmit_Click);
@@ -249,7 +251,7 @@ namespace RealJabber
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(536, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(579, 6);
             // 
             // menuItemCustomTransmitInterval
             // 
@@ -260,121 +262,129 @@ namespace RealJabber
             this.menuItem100ms,
             this.menuItem200ms,
             this.menuItem300ms,
-            this.menuItem500ms,
+            this.toolStripMenuItem1,
+            this.menuItem700ms,
             this.menuItem1000ms,
             this.menuItem2000ms,
             this.menuItem3000ms,
             this.menuItem5000ms,
             this.toolStripSeparator3});
             this.menuItemCustomTransmitInterval.Name = "menuItemCustomTransmitInterval";
-            this.menuItemCustomTransmitInterval.Size = new System.Drawing.Size(539, 22);
+            this.menuItemCustomTransmitInterval.Size = new System.Drawing.Size(582, 22);
             this.menuItemCustomTransmitInterval.Text = "Customize Outgoing Transmit Interval";
             // 
             // menuItem0ms
             // 
             this.menuItem0ms.Name = "menuItem0ms";
-            this.menuItem0ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem0ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem0ms.Text = "0 ms";
             this.menuItem0ms.Click += new System.EventHandler(this.menuItem0ms_Click);
             // 
             // menuItem20ms
             // 
             this.menuItem20ms.Name = "menuItem20ms";
-            this.menuItem20ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem20ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem20ms.Text = "20 ms";
             this.menuItem20ms.Click += new System.EventHandler(this.menuItem20ms_Click);
             // 
             // menuItem50ms
             // 
             this.menuItem50ms.Name = "menuItem50ms";
-            this.menuItem50ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem50ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem50ms.Text = "50 ms";
             this.menuItem50ms.Click += new System.EventHandler(this.menuItem50ms_Click);
             // 
             // menuItem100ms
             // 
             this.menuItem100ms.Name = "menuItem100ms";
-            this.menuItem100ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem100ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem100ms.Text = "100 ms";
             this.menuItem100ms.Click += new System.EventHandler(this.menuItem100ms_Click);
             // 
             // menuItem200ms
             // 
             this.menuItem200ms.Name = "menuItem200ms";
-            this.menuItem200ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem200ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem200ms.Text = "200 ms";
             this.menuItem200ms.Click += new System.EventHandler(this.menuItem200ms_Click);
             // 
             // menuItem300ms
             // 
             this.menuItem300ms.Name = "menuItem300ms";
-            this.menuItem300ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem300ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem300ms.Text = "300 ms";
             this.menuItem300ms.Click += new System.EventHandler(this.menuItem300ms_Click);
             // 
-            // menuItem500ms
+            // toolStripMenuItem1
             // 
-            this.menuItem500ms.Name = "menuItem500ms";
-            this.menuItem500ms.Size = new System.Drawing.Size(255, 22);
-            this.menuItem500ms.Text = "500 ms";
-            this.menuItem500ms.Click += new System.EventHandler(this.menuItem500ms_Click);
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(211, 22);
+            this.toolStripMenuItem1.Text = "500 ms";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.menuItem500ms_Click);
+            // 
+            // menuItem700ms
+            // 
+            this.menuItem700ms.Name = "menuItem700ms";
+            this.menuItem700ms.Size = new System.Drawing.Size(211, 22);
+            this.menuItem700ms.Text = "700 ms - RECOMMENDED";
+            this.menuItem700ms.Click += new System.EventHandler(this.menuItem700ms_Click);
             // 
             // menuItem1000ms
             // 
             this.menuItem1000ms.Name = "menuItem1000ms";
-            this.menuItem1000ms.Size = new System.Drawing.Size(255, 22);
-            this.menuItem1000ms.Text = "1000 ms  - RECOMMENDED by spec";
+            this.menuItem1000ms.Size = new System.Drawing.Size(211, 22);
+            this.menuItem1000ms.Text = "1000 ms";
             this.menuItem1000ms.Click += new System.EventHandler(this.menuItem1000ms_Click);
             // 
             // menuItem2000ms
             // 
             this.menuItem2000ms.Name = "menuItem2000ms";
-            this.menuItem2000ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem2000ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem2000ms.Text = "2000 ms";
             this.menuItem2000ms.Click += new System.EventHandler(this.menuItem2000ms_Click);
             // 
             // menuItem3000ms
             // 
             this.menuItem3000ms.Name = "menuItem3000ms";
-            this.menuItem3000ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem3000ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem3000ms.Text = "3000 ms";
             this.menuItem3000ms.Click += new System.EventHandler(this.menuItem3000ms_Click);
             // 
             // menuItem5000ms
             // 
             this.menuItem5000ms.Name = "menuItem5000ms";
-            this.menuItem5000ms.Size = new System.Drawing.Size(255, 22);
+            this.menuItem5000ms.Size = new System.Drawing.Size(211, 22);
             this.menuItem5000ms.Text = "5000 ms";
             this.menuItem5000ms.Click += new System.EventHandler(this.menuItem5000ms_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(252, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(208, 6);
             // 
             // menuItemEnableKeyPressIntervals
             // 
             this.menuItemEnableKeyPressIntervals.Name = "menuItemEnableKeyPressIntervals";
-            this.menuItemEnableKeyPressIntervals.Size = new System.Drawing.Size(539, 22);
+            this.menuItemEnableKeyPressIntervals.Size = new System.Drawing.Size(582, 22);
             this.menuItemEnableKeyPressIntervals.Text = "Enable Key Press Intervals (Natural Typing) - RECOMMENDED";
             this.menuItemEnableKeyPressIntervals.Click += new System.EventHandler(this.menuItemEnableKeyPressIntervals_Click);
             // 
             // menuItemEnableRemoteCursor
             // 
             this.menuItemEnableRemoteCursor.Name = "menuItemEnableRemoteCursor";
-            this.menuItemEnableRemoteCursor.Size = new System.Drawing.Size(539, 22);
+            this.menuItemEnableRemoteCursor.Size = new System.Drawing.Size(582, 22);
             this.menuItemEnableRemoteCursor.Text = "Enable Remote Cursor";
             this.menuItemEnableRemoteCursor.Click += new System.EventHandler(this.menuItemEnableRemoteCursor_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(536, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(579, 6);
             // 
             // menuItemRealJabber
             // 
             this.menuItemRealJabber.Name = "menuItemRealJabber";
-            this.menuItemRealJabber.Size = new System.Drawing.Size(539, 22);
+            this.menuItemRealJabber.Size = new System.Drawing.Size(582, 22);
             this.menuItemRealJabber.Text = "Go to www.realjabber.org";
             this.menuItemRealJabber.Click += new System.EventHandler(this.menuItemRealJabber_Click);
             // 
@@ -693,6 +703,13 @@ namespace RealJabber
             this.panelOuter.Size = new System.Drawing.Size(352, 456);
             this.panelOuter.TabIndex = 9;
             // 
+            // menuItemEnableChatStates
+            // 
+            this.menuItemEnableChatStates.Name = "menuItemEnableChatStates";
+            this.menuItemEnableChatStates.Size = new System.Drawing.Size(582, 22);
+            this.menuItemEnableChatStates.Text = "Enable Chat States (XEP-0085) (may cause different real-time text behaviour)";
+            this.menuItemEnableChatStates.Click += new System.EventHandler(this.menuItemEnableChatStates_Click);
+            // 
             // FrmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -758,7 +775,7 @@ namespace RealJabber
         private System.Windows.Forms.ToolStripMenuItem menuItem0ms;
         private System.Windows.Forms.ToolStripMenuItem menuItem100ms;
         private System.Windows.Forms.ToolStripMenuItem menuItem300ms;
-        private System.Windows.Forms.ToolStripMenuItem menuItem500ms;
+        private System.Windows.Forms.ToolStripMenuItem menuItem700ms;
         private System.Windows.Forms.ToolStripMenuItem menuItem1000ms;
         private System.Windows.Forms.ToolStripMenuItem menuItem2000ms;
         private System.Windows.Forms.ToolStripMenuItem menuItem3000ms;
@@ -790,5 +807,7 @@ namespace RealJabber
         private System.Windows.Forms.RichTextBox textboxSendMsg3;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem menuItemEnableChatStates;
     }
 }

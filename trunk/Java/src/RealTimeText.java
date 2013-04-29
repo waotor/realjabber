@@ -48,20 +48,19 @@ import org.xmlpull.v1.XmlPullParserException;
 //   under grants H133E090001 and H133E080022. However, no endorsement of the 
 //   funding agency should be assumed.
 //
-// TABLE OF SUPPORTED ACTION ELEMENTS
-//   For more information, please see http://www.realjabber.org
-//   ----------------------------------------------------------
+// TABLE OF ACTION ELEMENTS
+//   For more information, see http://www.xmpp.org/extensions/xep-0301.html
+//   ----------------------------------------------------------------------
 //   ACTION           CODE               DESCRIPTION
-//   Insert           <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
-//   Backspace        <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
-//   Forward Delete   <d p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the right of position p in message. Also good for block deletes (i.e. cuts)
-//   Interval         <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
+//   Insert Text      <t p='#'>text</t>  (REQUIRED) Insert text at position p in message. Also good for block inserts (i.e. pastes).
+//   Erase Text       <e p='#' n='#'/>   (REQUIRED) Deletes n characters of text to the left of position p in message.
+//   Wait Interval    <w n='#'/>         (RECOMMENDED) Key press intervals. Execute a pause of n thousandths of a second. Allows multiple smooth keypresses in one packet.
 //
 public class RealTimeText {
     // Specification constants
     public static final String ROOT = "rtt";
     public static final String NAMESPACE = "urn:xmpp:rtt:0";
-    public static final String VERSION = "0.3";
+    public static final String VERSION = "0.6";
 
     /** @summary The default recommended transmission interval (in milliseconds) for real time text */
     public static final int DEFAULT_TRANSMIT_INTERVAL = 700;
@@ -429,14 +428,14 @@ public class RealTimeText {
     /** Class to generate action elements */
     static public class AppendElement {
         /**
-         * T Element - Insert/Append Text Inserts text at specified position, or appends text to end of line
+         * T Element - Insert Text - Inserts text at specified position, or appends text to end of line
          * 
          * @param text Text to insert
          * @param pos Position to insert text at
          * @param len Length of original text to insert into (for automatic omission of 'pos' if at end of string)
          * @return Action element represented
          */
-        public static void insert(Vector<ActionElement> actions, String text, int pos, int len) {
+        public static void insertText(Vector<ActionElement> actions, String text, int pos, int len) {
             if ((text == null) || text.isEmpty()) return;
 
             ActionElement action = new ActionElement("t");
@@ -448,14 +447,14 @@ public class RealTimeText {
         }
 
         /**
-         * E Element - Backspace Erase # characters before specified position
+         * E Element - Erase Text - Erase # characters before specified position
          * 
          * @param pos Position to begin backspacing at
          * @param count Count of characters to backspaces
          * @param len Length of original string
          * @return Action element represented
          */
-        public static void backspace(Vector<ActionElement> actions, int pos, int count, int len) {
+        public static void eraseText(Vector<ActionElement> actions, int pos, int count, int len) {
             if (count <= 0) return;
 
             ActionElement action = new ActionElement("e");
@@ -469,30 +468,12 @@ public class RealTimeText {
         }
 
         /**
-         * D Element - Forward Delete - Delete # of characters beginning at specified position
-         * 
-         * @param pos Position to delete characters at
-         * @param count Count of characters to delete
-         * @return Action element represented
-         */
-        public static void forwardDelete(Vector<ActionElement> actions, int pos, int count) {
-            if (count <= 0) return;
-
-            ActionElement action = new ActionElement("d");
-            if (count != 1) {
-                action.setCount(count);
-            }
-            action.setPosition(pos);
-            actions.add(action);
-        }
-
-        /**
-         * W Element - Interval - Pause specified amount (i.e. intervals between key presses)
+         * W Element - Wait Interval - Pause specified amount (i.e. intervals between key presses)
          * 
          * @param milliseconds Number of thousandths of seconds to delay
          * @return Action element represented
          */
-        public static void interval(Vector<ActionElement> actions, int milliseconds) {
+        public static void waitInterval(Vector<ActionElement> actions, int milliseconds) {
             ActionElement action = new ActionElement("w");
             action.setCount(milliseconds);
             actions.add(action);
@@ -550,8 +531,8 @@ public class RealTimeText {
 
                 switch (action.element.charAt(0)) {
                 // --------------------------------------------------------------------
-                case 't': // Insert action element: <t p="#">text</i>
-                    message.pos = pos;  // Reposition cursor even if <t> is empty.
+                case 't': // Insert Text action element: <t p="#">text</i>
+                    message.pos = pos;  // Reposition cursor even if <t/> is empty.
                     if ((action.text != null) && !action.text.isEmpty())
                     {
                         text = text.substring(0, message.pos) + action.text + text.substring(message.pos);
@@ -559,20 +540,14 @@ public class RealTimeText {
                     }
                     break;
                 // --------------------------------------------------------------------
-                case 'e': // Backspace action element: <e p="#" n="#"/>
+                case 'e': // Erase Text action element: <e p="#" n="#"/>
                     message.pos = pos;
                     if (count > message.pos) count = message.pos;
                     text = text.substring(0, message.pos - count) + text.substring(message.pos);
                     message.pos -= count;
                     break;
                 // --------------------------------------------------------------------
-                case 'd': // Delete action element: <d p="#" n="#"/>
-                    message.pos = pos;
-                    if ((message.pos + count) > message.text.length()) count = message.text.length() - message.pos;
-                    text = text.substring(0, message.pos) + text.substring(message.pos + count);
-                    break;
-                // --------------------------------------------------------------------
-                case 'w': // Delay code <w n="#"/>
+                case 'w': // Wait Interval action element <w n="#"/>
                     if (message.enableKeyIntervals) {
                         message.currentKeyInterval = count;
                         quit = true;
@@ -635,35 +610,28 @@ public class RealTimeText {
                 trailingSame++;
             }
 
-            // Delete text if a deletion is detected anywhere in the string.
+            // Erase text if a deletion is detected anywhere in the string.
             int charsRemoved = before.text.length() - trailingSame - leadingSame;
             if (charsRemoved > 0) {
                 int posEndOfRemovedChars = before.text.length() - trailingSame;
                 int posStartOfRemovedChars = posEndOfRemovedChars - charsRemoved;
-                if ((posEndOfRemovedChars == before.pos) ||
-                    (posEndOfRemovedChars == before.text.length())) {
-                    // Cursor ideally positioned for <e> BACKSPACE action element
-                    AppendElement.backspace(rtt.actions, posEndOfRemovedChars, charsRemoved, before.text.length());
-                    curPos = posStartOfRemovedChars;
-                } else {
-                    // Cursor ideally positioned for <d> FORWARD DELETE action element
-                    AppendElement.forwardDelete(rtt.actions, posStartOfRemovedChars, charsRemoved);
-                    curPos = posStartOfRemovedChars;
-                }
+                // Do <e/> ERASE TEXT action element to delete text block
+                AppendElement.eraseText(rtt.actions, posEndOfRemovedChars, charsRemoved, before.text.length());
+                curPos = posStartOfRemovedChars;
             }
 
-            // Do <t> INSERT action element if any text insertion is detected anywhere in the string
+            // Do <t/> INSERT TEXT action element if any text insertion is detected anywhere in the string
             int charsInserted = after.text.length() - trailingSame - leadingSame;
             try {
                 String insertedText = after.text.substring(leadingSame, leadingSame + charsInserted);
-                AppendElement.insert(rtt.actions, insertedText, curPos, before.text.length());
+                AppendElement.insertText(rtt.actions, insertedText, curPos, before.text.length());
             } catch (Exception ex) {
                 System.out.println("Oh no!! ... " + ex.toString());
             }
             curPos += charsInserted;
         }
 
-        // To assist in the optional remote cursor, do a blank <t> INSERT action element
+        // To assist in the optional remote cursor, do a blank <t/> INSERT TEXT action element
         if ((before.pos != -1) &&
             (curPos != after.pos))
         {
@@ -1068,15 +1036,16 @@ public class RealTimeText {
                 // Automatic and/or manually forced message retransmission
                 if (fullMessageTransmit) {
                     rttEncoded.setEvent("reset");
-                    if (messagePrevious.pos != messagePrevious.text.length()) {
-                        // For clients supporting an optional remote cursor position, a blank INSERT TEXT <t> elements sets the cursor position.
+                    if ((messagePrevious.pos != -1) &&
+                        (messagePrevious.pos != messagePrevious.text.length())) {
+                        // For clients supporting an optional remote cursor position, a blank INSERT TEXT <t/> elements sets the cursor position.
                         ActionElement resetPos = new ActionElement("t");
                         resetPos.p = messagePrevious.pos;
                         rtt.actions.add(0, resetPos); // Prepend
                     }
                     if (!messagePrevious.text.isEmpty())
                     {
-                        // Retransmission of full message text in an INSERT TEXT <t> element.
+                        // Retransmission of full message text in an INSERT TEXT <t/> element.
                         ActionElement resetText = new ActionElement("t");
                         resetText.text = messagePrevious.text;
                         rtt.actions.add(0, resetText); // Prepend
@@ -1136,7 +1105,7 @@ public class RealTimeText {
                     int milliseconds = delayCalculator.getMillisecondsSinceLastCall();
                     if (milliseconds > 0) {
                         if (milliseconds > transmitInterval) milliseconds = transmitInterval;  // Limit delays to maximum interval.
-                        RealTimeText.AppendElement.interval(rtt.actions, milliseconds);
+                        RealTimeText.AppendElement.waitInterval(rtt.actions, milliseconds);
                     }
                 }
 
@@ -1213,12 +1182,12 @@ public class RealTimeText {
             fullMessageTransmit = value;
         }
         
-        /** Gets flag that enable transmission of 'W' interval elements between action elements, for encoding of pauses between key presses */
+        /** Gets flag that enable transmission of <w/> Wait Interval action elements between action elements, for encoding of pauses between key presses */
         public boolean getKeyIntervalsEnabled() {
             return message.getKeyIntervalsEnabled();
         }
 
-        /** Sets flag that enable transmission of 'W' interval elements between action elements, for encoding of pauses between key presses */
+        /** Sets flag that enable transmission of <w/> Wait Interval action elements between action elements, for encoding of pauses between key presses */
         public void setKeyIntervalsEnabled(boolean value) {
             message.setKeyIntervalsEnabled(value);
         }
